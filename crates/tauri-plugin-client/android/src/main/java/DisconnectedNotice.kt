@@ -11,7 +11,7 @@ import androidx.cardview.widget.CardView
 
 class DisconnectedNotice(
     private val activity: Activity,
-    private val config: AsrLaunchConfig,
+    private val servicePackage: String,
 ) : Notice(
         activity,
         R.layout.disconnected_notice,
@@ -34,19 +34,17 @@ class DisconnectedNotice(
         }
     }
 
-    private fun openAsr(): Boolean =
-        when (config.mode) {
-            AsrLaunchMode.AUTO -> trySettings() || tryLauncher()
-            AsrLaunchMode.SETTINGS -> trySettings()
-            AsrLaunchMode.LAUNCHER -> tryLauncher()
-            else -> false
+    private fun openAsr() {
+        if (!trySettings()) {
+            tryLauncher()
         }
+    }
 
     private fun trySettings(): Boolean =
         try {
             val pm = activity.packageManager
             // Resolve the settings activity dynamically
-            val probe = Intent(ASR_SETTINGS_ACTION).setPackage(config.packageName)
+            val probe = Intent(ASR_SETTINGS_ACTION).setPackage(servicePackage)
             val resolve =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     pm
@@ -74,7 +72,7 @@ class DisconnectedNotice(
 
     private fun tryLauncher(): Boolean =
         try {
-            val launch = this.activity.packageManager.getLaunchIntentForPackage(config.packageName) ?: return false
+            val launch = this.activity.packageManager.getLaunchIntentForPackage(servicePackage) ?: return false
             activity.startActivity(launch)
             true
         } catch (t: Throwable) {

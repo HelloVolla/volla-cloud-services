@@ -30,12 +30,7 @@ class HolochainServiceClientPlugin(
             this.activity,
             ComponentName(servicePackage, "org.holochain.androidserviceruntime.service.HolochainService"),
         )
-    private val asrConfig =
-        AsrLaunchConfig(
-            packageName = servicePackage,
-            mode = AsrLaunchMode.AUTO,
-        )
-    private val disconnectedNotice = DisconnectedNotice(activity, asrConfig)
+    private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
     private val unauthorizedNotice = UnauthorizedNotice(activity, servicePackage)
     private val logTag = "HolochainServiceClientPlugin"
     private var webView: WebView? = null
