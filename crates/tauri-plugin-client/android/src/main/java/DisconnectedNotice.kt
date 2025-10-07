@@ -3,6 +3,8 @@ package org.holochain.androidserviceruntime.plugin.client
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import android.widget.Button
 import androidx.cardview.widget.CardView
@@ -45,7 +47,17 @@ class DisconnectedNotice(
             val pm = activity.packageManager
             // Resolve the settings activity dynamically
             val probe = Intent(ASR_SETTINGS_ACTION).setPackage(config.packageName)
-            val resolve = pm.queryIntentActivities(probe, 0).firstOrNull() ?: return false
+            val resolve =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm
+                        .queryIntentActivities(
+                            probe,
+                            PackageManager.ResolveInfoFlags.of(0),
+                        ).firstOrNull()
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.queryIntentActivities(probe, 0).firstOrNull()
+                } ?: return false
             val target =
                 ComponentName(resolve.activityInfo.packageName, resolve.activityInfo.name)
             val intent =
@@ -62,7 +74,7 @@ class DisconnectedNotice(
 
     private fun tryLauncher(): Boolean =
         try {
-            val launch = activity.packageManager.getLaunchIntentForPackage(config.packageName) ?: return false
+            val launch = this.activity.packageManager.getLaunchIntentForPackage(config.packageName) ?: return false
             activity.startActivity(launch)
             true
         } catch (t: Throwable) {
