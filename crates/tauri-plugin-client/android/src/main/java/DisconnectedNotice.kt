@@ -35,8 +35,8 @@ class DisconnectedNotice(
     }
 
     private fun openAsr() {
-        if (!trySettings()) {
-            tryLauncher()
+        if (!trySettings() && !tryLauncher()) {
+            Log.e(TAG, "Failed to open ASR via both settings and launcher")
         }
     }
 
@@ -63,6 +63,7 @@ class DisconnectedNotice(
                     component = target
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
+            Log.i(TAG, "targeting ASR settings: $target")
             activity.startActivity(intent)
             true
         } catch (t: Throwable) {
