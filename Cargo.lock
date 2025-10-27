@@ -7933,7 +7933,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service-client"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bytes",
  "holochain-conductor-runtime-types-ffi",
