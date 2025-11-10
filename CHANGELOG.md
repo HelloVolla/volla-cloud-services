@@ -4,6 +4,7 @@
 
 # 0.2.3
 - integrate with Volla-Messages
+
 # 0.2.2
 - bump to holochain 0.5.6
 - fix example client app connection bug
