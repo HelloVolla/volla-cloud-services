@@ -2,8 +2,10 @@
 
 - The 'Open Settings' button will first attempt to open the android-service-runtime app via the system settings (i.e. for 'system' builds). If that fails it will fallback to opening the app via the launcher (i.e. for 'user' builds).
 
+
 # 0.2.3
 - integrate with Volla-Messages
+- bump to holochain 0.6.0-rc.0
 
 # 0.2.2
 - bump to holochain 0.5.6
