@@ -10,7 +10,6 @@ sealed class [DisabledAppReasonFfi](index.md)
 |---|
 | [NeverStarted](-never-started/index.md) |
 | [NotStartedAfterProvidingMemproofs](-not-started-after-providing-memproofs/index.md) |
-| [DeletingAgentKey](-deleting-agent-key/index.md) |
 | [User](-user/index.md) |
 | [Error](-error/index.md) |
 
@@ -19,7 +18,6 @@ sealed class [DisabledAppReasonFfi](index.md)
 | Name | Summary |
 |---|---|
 | [Companion](-companion/index.md) | [androidJvm]<br>object [Companion](-companion/index.md) |
-| [DeletingAgentKey](-deleting-agent-key/index.md) | [androidJvm]<br>object [DeletingAgentKey](-deleting-agent-key/index.md) : [DisabledAppReasonFfi](index.md) |
 | [Error](-error/index.md) | [androidJvm]<br>data class [Error](-error/index.md)(val v1: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)) : [DisabledAppReasonFfi](index.md) |
 | [NeverStarted](-never-started/index.md) | [androidJvm]<br>object [NeverStarted](-never-started/index.md) : [DisabledAppReasonFfi](index.md) |
 | [NotStartedAfterProvidingMemproofs](-not-started-after-providing-memproofs/index.md) | [androidJvm]<br>object [NotStartedAfterProvidingMemproofs](-not-started-after-providing-memproofs/index.md) : [DisabledAppReasonFfi](index.md) |

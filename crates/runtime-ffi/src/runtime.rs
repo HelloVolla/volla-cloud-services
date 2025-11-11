@@ -304,7 +304,7 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
-        assert_eq!(apps.first().unwrap().status, AppInfoStatusFfi::Running);
+        assert_eq!(apps.first().unwrap().status, AppStatusFfi::Enabled);
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -329,7 +329,7 @@ mod test {
         assert_eq!(apps.len(), 1);
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatusFfi::Disabled {
+            AppStatusFfi::Disabled {
                 reason: DisabledAppReasonFfi::User
             }
         ));

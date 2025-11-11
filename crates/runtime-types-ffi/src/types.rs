@@ -1,10 +1,10 @@
 use holochain_conductor_api::{
-    AppAuthenticationTokenIssued, AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell,
+    AppAuthenticationTokenIssued, AppInfo, CellInfo, ProvisionedCell, StemCell,
     ZomeCallParamsSigned,
 };
 use holochain_types::{
     app::{
-        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload, PausedAppReason,
+        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
         RoleSettings,
     },
     dna::{
@@ -12,7 +12,7 @@ use holochain_types::{
         HoloHash,
     },
     prelude::{
-        CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
+        AppStatus, CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
         Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallParams,
         ZomeName,
     },
@@ -127,23 +127,9 @@ impl From<CellInfo> for CellInfoFfi {
 }
 
 #[derive(uniffi::Enum, Eq, PartialEq, Debug)]
-pub enum PausedAppReasonFfi {
-    Error(String),
-}
-
-impl From<PausedAppReason> for PausedAppReasonFfi {
-    fn from(value: PausedAppReason) -> Self {
-        match value {
-            PausedAppReason::Error(error) => PausedAppReasonFfi::Error(error),
-        }
-    }
-}
-
-#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum DisabledAppReasonFfi {
     NeverStarted,
     NotStartedAfterProvidingMemproofs,
-    DeletingAgentKey,
     User,
     Error(String),
 }
@@ -155,7 +141,6 @@ impl From<DisabledAppReason> for DisabledAppReasonFfi {
             DisabledAppReason::NotStartedAfterProvidingMemproofs => {
                 DisabledAppReasonFfi::NotStartedAfterProvidingMemproofs
             }
-            DisabledAppReason::DeletingAgentKey => DisabledAppReasonFfi::DeletingAgentKey,
             DisabledAppReason::User => DisabledAppReasonFfi::User,
             DisabledAppReason::Error(error) => DisabledAppReasonFfi::Error(error),
         }
@@ -163,24 +148,20 @@ impl From<DisabledAppReason> for DisabledAppReasonFfi {
 }
 
 #[derive(uniffi::Enum, Eq, PartialEq, Debug)]
-pub enum AppInfoStatusFfi {
-    Paused { reason: PausedAppReasonFfi },
+pub enum AppStatusFfi {
     Disabled { reason: DisabledAppReasonFfi },
-    Running,
+    Enabled,
     AwaitingMemproofs,
 }
 
-impl From<AppInfoStatus> for AppInfoStatusFfi {
-    fn from(value: AppInfoStatus) -> Self {
+impl From<AppStatus> for AppStatusFfi {
+    fn from(value: AppStatus) -> Self {
         match value {
-            AppInfoStatus::Paused { reason: paused } => AppInfoStatusFfi::Paused {
-                reason: paused.into(),
-            },
-            AppInfoStatus::Disabled { reason: disabled } => AppInfoStatusFfi::Disabled {
+            AppStatus::Disabled (disabled) => AppStatusFfi::Disabled {
                 reason: disabled.into(),
             },
-            AppInfoStatus::Running => AppInfoStatusFfi::Running,
-            AppInfoStatus::AwaitingMemproofs => AppInfoStatusFfi::AwaitingMemproofs,
+            AppStatus::Enabled => AppStatusFfi::Enabled,
+            AppStatus::AwaitingMemproofs => AppStatusFfi::AwaitingMemproofs,
         }
     }
 }
@@ -190,7 +171,7 @@ pub struct AppInfoFfi {
     /// The unique identifier for an installed app in this conductor
     pub installed_app_id: String,
     pub cell_info: HashMap<String, Vec<CellInfoFfi>>,
-    pub status: AppInfoStatusFfi,
+    pub status: AppStatusFfi,
     pub agent_pub_key: Vec<u8>,
 }
 
@@ -319,9 +300,6 @@ impl From<ZomeCallParamsSigned> for ZomeCallParamsSignedFfi {
 
 #[derive(uniffi::Enum, Serialize, Deserialize, Clone, Debug)]
 pub enum RoleSettingsFfi {
-    UseExisting {
-        cell_id: CellIdFfi,
-    },
     Provisioned {
         membrane_proof: Option<Vec<u8>>,
         modifiers: Option<DnaModifiersOptFfi>,
@@ -331,9 +309,6 @@ pub enum RoleSettingsFfi {
 impl From<RoleSettingsFfi> for RoleSettings {
     fn from(val: RoleSettingsFfi) -> Self {
         match val {
-            RoleSettingsFfi::UseExisting { cell_id } => RoleSettings::UseExisting {
-                cell_id: cell_id.into(),
-            },
             RoleSettingsFfi::Provisioned {
                 membrane_proof,
                 modifiers,
@@ -359,7 +334,7 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     type Error = AppBundleError;
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
-            source: AppBundleSource::Bytes(self.source),
+            source: AppBundleSource::Bytes(self.source.into()),
             agent_key: None,
             installed_app_id: Some(self.installed_app_id),
             network_seed: self.network_seed,
@@ -367,7 +342,6 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
                 .roles_settings
                 .map(|r| r.into_iter().map(|(k, v)| (k, v.into())).collect()),
             ignore_genesis_failure: false,
-            allow_throwaway_random_agent_key: false,
         })
     }
 }

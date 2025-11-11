@@ -1,21 +1,21 @@
-//[client](../../../index.md)/[org.holochain.androidserviceruntime.client](../index.md)/[AppInfoStatusFfiParcel](index.md)
+//[client](../../../index.md)/[org.holochain.androidserviceruntime.client](../index.md)/[AppStatusFfiParcel](index.md)
 
-# AppInfoStatusFfiParcel
+# AppStatusFfiParcel
 
 [androidJvm]\
-data class [AppInfoStatusFfiParcel](index.md)(val inner: [AppInfoStatusFfi](../-app-info-status-ffi/index.md)) : [Parcelable](https://developer.android.com/reference/kotlin/android/os/Parcelable.html)
+data class [AppStatusFfiParcel](index.md)(val inner: [AppStatusFfi](../-app-status-ffi/index.md)) : [Parcelable](https://developer.android.com/reference/kotlin/android/os/Parcelable.html)
 
 ## Constructors
 
 | | |
 |---|---|
-| [AppInfoStatusFfiParcel](-app-info-status-ffi-parcel.md) | [androidJvm]<br>constructor(inner: [AppInfoStatusFfi](../-app-info-status-ffi/index.md)) |
+| [AppStatusFfiParcel](-app-status-ffi-parcel.md) | [androidJvm]<br>constructor(inner: [AppStatusFfi](../-app-status-ffi/index.md)) |
 
 ## Properties
 
 | Name | Summary |
 |---|---|
-| [inner](inner.md) | [androidJvm]<br>val [inner](inner.md): [AppInfoStatusFfi](../-app-info-status-ffi/index.md) |
+| [inner](inner.md) | [androidJvm]<br>val [inner](inner.md): [AppStatusFfi](../-app-status-ffi/index.md) |
 
 ## Functions
 

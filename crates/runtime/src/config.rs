@@ -57,7 +57,6 @@ impl From<RuntimeNetworkConfig> for NetworkConfig {
 impl From<RuntimeConfig> for ConductorConfig {
     fn from(val: RuntimeConfig) -> Self {
         Self {
-            device_seed_lair_tag: Some(DEVICE_SEED_LAIR_TAG.to_string()),
             data_root_path: Some(val.data_root_path.clone().into()),
             keystore: KeystoreConfig::LairServerInProc { lair_root: None },
             network: val.network.into(),

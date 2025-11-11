@@ -2824,6 +2824,7 @@ dependencies = [
 name = "holochain-conductor-runtime-types-ffi"
 version = "0.2.3"
 dependencies = [
+ "bytes",
  "hc_uniffi",
  "holochain_conductor_api",
  "holochain_types",
