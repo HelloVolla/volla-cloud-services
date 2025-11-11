@@ -8,7 +8,6 @@ sealed class [RoleSettingsFfi](index.md)
 
 | |
 |---|
-| [UseExisting](-use-existing/index.md) |
 | [Provisioned](-provisioned/index.md) |
 
 ## Types
@@ -17,7 +16,6 @@ sealed class [RoleSettingsFfi](index.md)
 |---|---|
 | [Companion](-companion/index.md) | [androidJvm]<br>object [Companion](-companion/index.md) |
 | [Provisioned](-provisioned/index.md) | [androidJvm]<br>data class [Provisioned](-provisioned/index.md)(val membraneProof: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html)?, val modifiers: [DnaModifiersOptFfi](../-dna-modifiers-opt-ffi/index.md)?) : [RoleSettingsFfi](index.md) |
-| [UseExisting](-use-existing/index.md) | [androidJvm]<br>data class [UseExisting](-use-existing/index.md)(val cellId: [CellIdFfi](../-cell-id-ffi/index.md)) : [RoleSettingsFfi](index.md) |
 
 ## Functions
 

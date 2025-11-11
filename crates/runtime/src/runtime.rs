@@ -108,12 +108,8 @@ impl Runtime {
             .req_admin_api(AdminRequest::EnableApp { installed_app_id })
             .await?;
         match response {
-            AdminResponse::AppEnabled { app, errors } => {
-                if errors.is_empty() {
-                    Ok(app)
-                } else {
-                    Err(RuntimeError::AdminApiAppEnabled(errors))
-                }
+            AdminResponse::AppEnabled(app) => {
+                Ok(app)
             }
             fail => Err(RuntimeError::AdminApiBadResponse(fail)),
         }
@@ -290,6 +286,7 @@ impl Runtime {
                 port,
                 allowed_origins,
                 installed_app_id,
+                danger_bind_addr: None,
             })
             .await?;
         match response {
@@ -304,7 +301,6 @@ mod test {
     use crate::RuntimeNetworkConfig;
 
     use super::*;
-    use holochain::conductor::api::AppInfoStatus;
     use holochain::conductor::api::CellInfo::Provisioned;
     use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
@@ -312,6 +308,8 @@ mod test {
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
+    use holochain_types::prelude::AppStatus;
+
     use serde_json::json;
     use sodoken::LockedArray;
     use std::sync::Mutex;
@@ -324,13 +322,12 @@ mod test {
     async fn install_happ_fixture(runtime: Runtime, app_id: &str) -> AppInfo {
         runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                 agent_key: None,
                 installed_app_id: Some(app_id.into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
             })
             .await
             .unwrap()
@@ -439,13 +436,12 @@ mod test {
 
         let res = runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                 agent_key: None,
                 installed_app_id: Some("my-app-1".into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
             })
             .await;
         assert!(res.is_ok());
@@ -496,7 +492,7 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
-        assert_eq!(apps.first().unwrap().status, AppInfoStatus::Running);
+        assert_eq!(apps.first().unwrap().status, AppStatus::Enabled);
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -521,9 +517,9 @@ mod test {
         assert_eq!(apps.len(), 1);
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatus::Disabled {
-                reason: DisabledAppReason::User
-            }
+            AppStatus::Disabled (
+                DisabledAppReason::User
+            )
         ));
     }
 
@@ -700,13 +696,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-1".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 false,
             )
@@ -719,13 +714,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-2".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 false,
             )
@@ -753,13 +747,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-1".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 false,
             )
@@ -768,7 +761,7 @@ mod test {
         let apps = runtime.list_apps().await.unwrap();
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatus::Disabled { .. }
+            AppStatus::Disabled { .. }
         ));
     }
 
@@ -789,13 +782,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-1".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 true,
             )
@@ -805,7 +797,7 @@ mod test {
         let apps = runtime.list_apps().await.unwrap();
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatus::Running
+            AppStatus::Enabled
         ));
     }
 }
