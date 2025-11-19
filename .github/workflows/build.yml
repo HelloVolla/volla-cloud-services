@@ -14,7 +14,7 @@ jobs:
     # which is required to build the apps.
     environment: Android Service Runtime Release
     
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:

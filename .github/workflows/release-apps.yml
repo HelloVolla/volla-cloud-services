@@ -10,7 +10,7 @@ jobs:
   create-release:
     permissions: write-all
     environment: Android Service Runtime Release
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       releaseId: ${{ steps.step1.outputs.id }}
     steps:
@@ -52,7 +52,7 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: 'ubuntu-22.04' 
+    runs-on: self-hosted 
     strategy:
       fail-fast: false
       matrix:
@@ -131,7 +131,7 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: 'ubuntu-22.04' 
+    runs-on: self-hosted 
     strategy:
       fail-fast: false
     steps:
