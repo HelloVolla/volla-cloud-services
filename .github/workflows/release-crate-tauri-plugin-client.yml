@@ -10,16 +10,13 @@ jobs:
   release:
     permissions: write-all
     environment: Cargo Release
-    runs-on: 'ubuntu-22.04' 
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
     strategy:
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
-
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
 
       - name: Install nix
         uses: cachix/install-nix-action@v27

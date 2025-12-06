@@ -10,19 +10,18 @@ jobs:
   test-rust-crates:
     name: Test Rust Crates
     runs-on: ${{ matrix.os }}
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
       matrix:
         os: [
-          ubuntu-latest,
+          self-hosted,
         ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
@@ -39,7 +38,9 @@ jobs:
 
   test-kotlin-libraries:
     name: Test Kotlin Libraries
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
       matrix:
@@ -50,18 +51,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: false
-        
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3

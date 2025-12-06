@@ -11,6 +11,8 @@ jobs:
     permissions: write-all
     environment: Android Service Runtime Release
     runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     outputs:
       releaseId: ${{ steps.step1.outputs.id }}
     steps:
@@ -53,6 +55,8 @@ jobs:
     needs: 
       - create-release
     runs-on: self-hosted 
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
       matrix:
@@ -63,11 +67,6 @@ jobs:
             label: system
     steps:
       - uses: actions/checkout@v3
-
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
@@ -131,16 +130,13 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: self-hosted 
+    runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
-
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
