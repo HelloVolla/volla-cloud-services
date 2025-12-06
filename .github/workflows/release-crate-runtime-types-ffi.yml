@@ -36,8 +36,8 @@ jobs:
         with:
           name: holochain-ci
 
-      - name: Publish to crates.io
+      - name: Publish to Nexus Cargo
         run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm run publish:runtime-types-ffi"
+          nix develop --no-update-lock-file --command bash -c "pnpm run publish:runtime-types-ffi -- --registry volla-nexus"
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRIES_VOLLA_NEXUS_TOKEN: ${{ secrets.NEXUS_CARGO_TOKEN }}

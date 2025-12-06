@@ -1,0 +1,2 @@
+[registries.volla-nexus]
+index = "sparse+https://nexus.volla.tech/repository/cargo/"
