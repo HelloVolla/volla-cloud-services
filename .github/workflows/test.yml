@@ -25,7 +25,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl
+          apt-get install -y sudo build-essential curl openjdk-11-jdk
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
@@ -60,6 +60,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk
+
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
         
@@ -75,7 +80,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl
+          apt-get install -y sudo build-essential curl openjdk-11-jdk
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
