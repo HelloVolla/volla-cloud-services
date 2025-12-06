@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask
 
 plugins {
@@ -42,8 +41,6 @@ android {
 }
 
 mavenPublishing {
-  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-
   if (!project.gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal") }) {
       signAllPublications()
   }
@@ -73,6 +70,19 @@ mavenPublishing {
       url.set("https://github.com/holochain/android-service-runtime/")
       connection.set("scm:git:git://github.com/holochain/android-service-runtime.git")
       developerConnection.set("scm:git:ssh://git@github.com/holochain/android-service-runtime.git")
+    }
+  }
+}
+
+publishing {
+  repositories {
+    maven {
+      name = "nexus"
+      url = uri("https://nexus.volla.tech/repository/maven-releases/")
+      credentials {
+        username = System.getenv("NEXUS_USERNAME")
+        password = System.getenv("NEXUS_PASSWORD")
+      }
     }
   }
 }
