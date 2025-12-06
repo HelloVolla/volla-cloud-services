@@ -75,8 +75,6 @@ jobs:
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
-        env:
-          USER: root
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
@@ -155,8 +153,6 @@ jobs:
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
-        env:
-          USER: root
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
