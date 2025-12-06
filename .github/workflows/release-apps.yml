@@ -83,6 +83,8 @@ jobs:
           enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
 
@@ -161,6 +163,8 @@ jobs:
           enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
       
