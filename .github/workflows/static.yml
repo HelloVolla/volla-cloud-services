@@ -10,6 +10,8 @@ jobs:
   static-analysis:
     name: Static Analysis
     runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
     steps:
