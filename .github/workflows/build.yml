@@ -33,11 +33,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential
+
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
         with:
@@ -71,11 +77,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential
+
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
         with:
