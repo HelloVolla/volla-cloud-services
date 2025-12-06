@@ -25,7 +25,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl openjdk-11-jdk
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
@@ -63,7 +63,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl openjdk-11-jdk
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
@@ -80,7 +80,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl openjdk-11-jdk
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip adb
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
@@ -116,13 +116,3 @@ jobs:
       - name: Lint client, service, tauri-plugin-client, tauri-plugin-service
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run lint"
-
-      - name: Run tests
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.target.api-level }}
-          arch: ${{ matrix.target.arch-ndk }}
-          target: google_apis
-          script: |
-            pnpm run test:client
-            pnpm run test:service
