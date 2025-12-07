@@ -9,20 +9,30 @@ on:
 jobs:
   static-analysis:
     name: Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
+
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
 
