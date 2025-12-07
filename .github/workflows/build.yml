@@ -54,7 +54,7 @@ jobs:
       - name: setup Android signing
         run: |
           cd apps/${{ matrix.build.name }}/src-tauri/gen/android
-          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > keystore.jks
+          printf '%s' "${{ secrets.ANDROID_KEY_BASE64 }}" | base64 -d > keystore.jks
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > key.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
           echo "storeFile=../keystore.jks" >> key.properties
