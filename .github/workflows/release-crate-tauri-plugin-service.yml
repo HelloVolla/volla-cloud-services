@@ -43,6 +43,6 @@ jobs:
       # See https://github.com/tauri-apps/tauri/issues/11187
       - name: Publish to Nexus Cargo
         run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm run publish:tauri-plugin-service -- --registry volla-nexus"
+          nix develop --no-update-lock-file --command bash -c "pnpm run publish:tauri-plugin-service"
         env:
           CARGO_REGISTRIES_VOLLA_NEXUS_TOKEN: ${{ secrets.NEXUS_CARGO_TOKEN }}
