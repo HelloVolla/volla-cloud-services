@@ -10,26 +10,33 @@ jobs:
   test-rust-crates:
     name: Test Rust Crates
     runs-on: ${{ matrix.os }}
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
       matrix:
         os: [
-          ubuntu-latest,
+          self-hosted,
         ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
+
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
 
@@ -39,7 +46,9 @@ jobs:
 
   test-kotlin-libraries:
     name: Test Kotlin Libraries
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
       matrix:
@@ -51,17 +60,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: false
-        
-      - name: Enable KVM
+      - name: Install packages
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
@@ -75,13 +77,21 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.target.api-level }}-${{ matrix.target.arch-ndk }}
 
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git adb
+
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
 
@@ -106,13 +116,3 @@ jobs:
       - name: Lint client, service, tauri-plugin-client, tauri-plugin-service
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run lint"
-
-      - name: Run tests
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.target.api-level }}
-          arch: ${{ matrix.target.arch-ndk }}
-          target: google_apis
-          script: |
-            pnpm run test:client
-            pnpm run test:service

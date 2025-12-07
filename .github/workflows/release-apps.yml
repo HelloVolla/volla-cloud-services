@@ -10,7 +10,9 @@ jobs:
   create-release:
     permissions: write-all
     environment: Android Service Runtime Release
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     outputs:
       releaseId: ${{ steps.step1.outputs.id }}
     steps:
@@ -52,7 +54,9 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: 'ubuntu-22.04' 
+    runs-on: self-hosted 
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
       matrix:
@@ -64,18 +68,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
 
@@ -86,10 +93,10 @@ jobs:
       - name: setup Android signing
         run: |
           cd apps/android-service-runtime/src-tauri/gen/android
-          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          printf '%s' "${{ secrets.ANDROID_KEY_BASE64 }}" | base64 -d > keystore.jks
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > key.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
-          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> key.properties
+          echo "storeFile=../keystore.jks" >> key.properties
           echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
 
       - name: Build android AAB
@@ -131,24 +138,29 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: 'ubuntu-22.04' 
+    runs-on: self-hosted
+    container:
+      image: ubuntu:24.04
     strategy:
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
       
@@ -162,10 +174,10 @@ jobs:
       - name: setup Android signing
         run: |
           cd apps/example-client-app/src-tauri/gen/android
-          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          printf '%s' "${{ secrets.ANDROID_KEY_BASE64 }}" | base64 -d > keystore.jks
           echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > key.properties
           echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
-          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> key.properties
+          echo "storeFile=../keystore.jks" >> key.properties
           echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
 
       - name: Build android AAB
