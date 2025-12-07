@@ -37,8 +37,8 @@
       "lint:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew lintKotlin",
       "lint": "pnpm run lint:client && pnpm run lint:service && pnpm run lint:tauri-plugin-client && pnpm run lint:tauri-plugin-service",
 
-      "publish:client": "cd libraries/client && ./gradlew publishAndReleaseToMavenCentral",
-      "publish:service": "cd libraries/service && ./gradlew publishAndReleaseToMavenCentral",
+      "publish:client": "cd libraries/client && ./gradlew publish",
+      "publish:service": "cd libraries/service && ./gradlew publish",
       "publish:runtime-types-ffi": "cargo publish -p holochain-conductor-runtime-types-ffi --registry cargo-hosted",
       "publish:tauri-plugin-client": "cargo publish -p tauri-plugin-holochain-service-client --no-verify --registry cargo-hosted",
       "publish:tauri-plugin-service": "cargo publish -p tauri-plugin-holochain-service --no-verify --registry cargo-hosted",
