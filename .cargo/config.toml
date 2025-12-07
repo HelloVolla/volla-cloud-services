@@ -1,9 +1,5 @@
-[registries]
-cargo-proxy = { index = "sparse+http://nexus.volla.tech/repository/cargo-proxy/" }
-cargo-group = { index = "sparse+http://nexus.volla.tech/repository/cargo-group/" }
+[registry]
+global-credential-providers = ["cargo:token"]
 
 [registries.cargo-hosted]
 index = "sparse+http://nexus.volla.tech/repository/cargo-hosted/"
-
-[source.crates-io]
-replace-with = "cargo-proxy"
