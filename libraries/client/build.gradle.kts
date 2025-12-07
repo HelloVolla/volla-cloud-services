@@ -1,4 +1,5 @@
 import org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask
+import org.gradle.plugins.signing.SigningExtension
 
 plugins {
   id("com.android.library")
@@ -7,6 +8,7 @@ plugins {
   id("com.vanniktech.maven.publish") version ("0.30.0")
   id("org.jmailen.kotlinter") version("5.0.1")
   id("org.jetbrains.dokka") version("2.0.0")
+  signing
 }
 
 // The uniffi-generated kotlin bindings violate some linter rules
@@ -41,10 +43,6 @@ android {
 }
 
 mavenPublishing {
-  if (!project.gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal") }) {
-      signAllPublications()
-  }
-
   coordinates("org.holochain.androidserviceruntime", "client", "0.0.19")
 
   pom {
@@ -85,6 +83,17 @@ publishing {
         password = System.getenv("NEXUS_PASSWORD")
       }
     }
+  }
+}
+
+configure<SigningExtension> {
+  val signingKey = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey")
+  val signingPassword = System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKeyPassword")
+
+  val shouldSign = !project.gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal") }
+
+  if (shouldSign && signingKey != null && signingPassword != null) {
+    useInMemoryPgpKeys(signingKey, signingPassword)
   }
 }
 
