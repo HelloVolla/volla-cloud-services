@@ -10,29 +10,34 @@ jobs:
   release:
     permissions: write-all
     environment: Cargo Release
-    runs-on: 'ubuntu-22.04' 
+    runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
     strategy:
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
+          enable_kvm: false
 
       - uses: cachix/cachix-action@v15
+        env:
+          USER: root
         with:
           name: holochain-ci
 
-      - name: Publish to crates.io
+      - name: Publish to Nexus Cargo
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run publish:runtime-types-ffi"
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRIES_CARGO_HOSTED_TOKEN: ${{ secrets.NEXUS_CARGO_TOKEN }}
