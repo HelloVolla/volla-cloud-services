@@ -40,4 +40,4 @@ jobs:
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run publish:runtime-types-ffi"
         env:
-          CARGO_REGISTRIES_VOLLA_NEXUS_TOKEN: ${{ secrets.NEXUS_CARGO_TOKEN }}
+          CARGO_REGISTRIES_CARGO_HOSTED_TOKEN: ${{ secrets.NEXUS_CARGO_TOKEN }}
