@@ -25,7 +25,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
@@ -63,7 +63,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
@@ -80,7 +80,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update
-          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip adb
+          apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git adb
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
