@@ -3,4 +3,4 @@
 # status
 
 [androidJvm]\
-var [status](status.md): [AppInfoStatusFfi](../-app-info-status-ffi/index.md)
+var [status](status.md): [AppStatusFfi](../-app-status-ffi/index.md)
