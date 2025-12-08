@@ -7753,7 +7753,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "holochain-conductor-runtime-types-ffi",
  "serde",
