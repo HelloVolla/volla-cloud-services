@@ -2783,7 +2783,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "holochain",
  "holochain_types",
@@ -2803,7 +2803,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime-ffi"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "android_logger 0.14.1",
  "hc_uniffi",
@@ -2822,7 +2822,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime-types-ffi"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "bytes",
  "hc_uniffi",
