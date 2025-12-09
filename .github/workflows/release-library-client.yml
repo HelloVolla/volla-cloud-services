@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Install packages
         run: |
@@ -24,7 +24,7 @@ jobs:
           apt-get install -y sudo build-essential curl openjdk-11-jdk unzip git
 
       - name: Install nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           nix_path: nixpkgs=channel:nixos-24.05
