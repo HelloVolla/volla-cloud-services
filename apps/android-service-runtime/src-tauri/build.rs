@@ -10,7 +10,8 @@ r#"<activity
     android:launchMode="singleTask"
     android:label="@string/main_activity_title"
     android:name=".MainActivity"
-    android:exported="true">
+    android:exported="true"
+    android:icon="@mipmap/ic_setting_dark">
     <intent-filter>
         <action android:name="com.android.settings.action.IA_SETTINGS" />
     </intent-filter>
