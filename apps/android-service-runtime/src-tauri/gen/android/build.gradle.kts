@@ -1,6 +1,9 @@
 buildscript {
     repositories {
         mavenLocal()
+          maven {
+            url = uri("https://nexus.volla.tech/repository/maven-releases/")
+        }
         maven {
             url = uri("https://repo1.maven.org/maven2")
         }
@@ -15,6 +18,9 @@ buildscript {
 allprojects {
     repositories {
         mavenLocal()
+          maven {
+            url = uri("https://nexus.volla.tech/repository/maven-releases/")
+        }
         maven {
             url = uri("https://repo1.maven.org/maven2")
         }
