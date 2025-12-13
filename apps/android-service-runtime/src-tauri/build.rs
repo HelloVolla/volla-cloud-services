@@ -10,11 +10,13 @@ r#"<activity
     android:launchMode="singleTask"
     android:label="@string/main_activity_title"
     android:name=".MainActivity"
-    android:exported="true"
-    android:icon="@mipmap/ic_setting_dark">
+    android:exported="true">
     <intent-filter>
         <action android:name="com.android.settings.action.IA_SETTINGS" />
     </intent-filter>
+    <meta-data
+            android:name="com.android.settings.icon"
+            android:resource="@drawable/ic_settings" />
     <meta-data android:name="com.android.settings.category"
             android:value="com.android.settings.category.ia.system" />
     <meta-data android:name="com.android.settings.summary"
