@@ -10,7 +10,7 @@ jobs:
   release:
     permissions: write-all
     environment: Cargo Release
-    runs-on: self-hosted
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:22.04
     strategy:

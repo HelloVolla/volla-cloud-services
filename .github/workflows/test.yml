@@ -9,15 +9,11 @@ on:
 jobs:
   test-rust-crates:
     name: Test Rust Crates
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:24.04
     strategy:
       fail-fast: false
-      matrix:
-        os: [
-          self-hosted,
-        ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +42,7 @@ jobs:
 
   test-kotlin-libraries:
     name: Test Kotlin Libraries
-    runs-on: self-hosted
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:24.04
     strategy:

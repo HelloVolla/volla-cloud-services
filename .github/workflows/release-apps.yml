@@ -10,7 +10,7 @@ jobs:
   create-release:
     permissions: write-all
     environment: Android Service Runtime Release
-    runs-on: self-hosted
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:24.04
     outputs:
@@ -54,7 +54,7 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: self-hosted 
+    runs-on: [self-hosted, yolo] 
     container:
       image: ubuntu:24.04
     strategy:
@@ -134,7 +134,7 @@ jobs:
     environment: Android Service Runtime Release
     needs: 
       - create-release
-    runs-on: self-hosted
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:24.04
     strategy:

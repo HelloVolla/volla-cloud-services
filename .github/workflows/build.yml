@@ -14,7 +14,7 @@ jobs:
     # which is required to build the apps.
     environment: Android Service Runtime Release
     
-    runs-on: self-hosted
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:24.04
     strategy:
@@ -66,7 +66,7 @@ jobs:
 
   build-tauri-plugins:
     name: Build tauri plugins
-    runs-on: self-hosted
+    runs-on: [self-hosted, yolo]
     container:
       image: ubuntu:24.04
     strategy:
