@@ -43,13 +43,7 @@ android {
 }
 
 mavenPublishing {
-  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-
-  if (!project.gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal") }) {
-      signAllPublications()
-  }
-
-  coordinates("org.holochain.androidserviceruntime", "client", "0.0.20")
+  coordinates("org.holochain.androidserviceruntime", "client", "0.0.21")
 
   pom {
     name.set("Holochain Service Client")

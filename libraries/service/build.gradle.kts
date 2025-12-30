@@ -43,13 +43,7 @@ android {
 }
 
 mavenPublishing {
-  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-
-  if (!project.gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal") }) {
-      signAllPublications()
-  }
-
-  coordinates("org.holochain.androidserviceruntime", "service", "0.0.20")
+  coordinates("org.holochain.androidserviceruntime", "service", "0.0.21")
 
   pom {
     name.set("Holochain Service")
@@ -104,7 +98,7 @@ configure<SigningExtension> {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.19")
+  implementation("org.holochain.androidserviceruntime:client:0.0.21")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")

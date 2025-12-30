@@ -14,6 +14,9 @@ r#"<activity
     <intent-filter>
         <action android:name="com.android.settings.action.IA_SETTINGS" />
     </intent-filter>
+    <meta-data
+            android:name="com.android.settings.icon"
+            android:resource="@drawable/ic_settings" />
     <meta-data android:name="com.android.settings.category"
             android:value="com.android.settings.category.ia.system" />
     <meta-data android:name="com.android.settings.summary"
