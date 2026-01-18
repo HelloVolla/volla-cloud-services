@@ -11,6 +11,7 @@ import kotlinx.coroutines.delay
 class HolochainServiceAppClient(
     private val context: Context,
     private val serviceComponentName: ComponentName,
+    private val onDisconnected: (() -> Unit)? = null,
 ) {
     private var mService: IHolochainServiceApp? = null
     private val logTag = "HolochainServiceAppClient"
@@ -29,6 +30,7 @@ class HolochainServiceAppClient(
             override fun onServiceDisconnected(className: ComponentName) {
                 mService = null
                 Log.d(logTag, "IHolochainServiceApp disconnected")
+                onDisconnected?.invoke()
             }
         }
 
