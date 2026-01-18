@@ -11,6 +11,7 @@ import kotlinx.coroutines.delay
 class HolochainServiceAppClient(
     private val context: Context,
     private val serviceComponentName: ComponentName,
+    private val onConnected: (() -> Unit)? = null,
     private val onDisconnected: (() -> Unit)? = null,
 ) {
     private var mService: IHolochainServiceApp? = null
@@ -25,6 +26,7 @@ class HolochainServiceAppClient(
             ) {
                 mService = IHolochainServiceApp.Stub.asInterface(service)
                 Log.d(logTag, "IHolochainServiceApp connected")
+                onConnected?.invoke()
             }
 
             override fun onServiceDisconnected(className: ComponentName) {
