@@ -106,6 +106,7 @@ class HolochainServiceAppClient(
     ): AppAuthFfi {
         this.connect(installAppPayload.installedAppId!!)
         this.waitForConnectReady()
+        this.waitForServiceReady()
         return this.setupApp(installAppPayload, enableAfterInstall)
     }
 
@@ -150,6 +151,13 @@ class HolochainServiceAppClient(
     }
 
     /**
+     * Checks if the Holochain runtime is ready to receive calls.
+     *
+     * @return true if connected and runtime is ready, false otherwise
+     */
+    fun isReady(): Boolean = this.mService?.isReady() ?: false
+
+    /**
      * Polls until connected to the service, or the timeout has elapsed.
      *
      * @param timeoutMs Maximum time to wait for connection in milliseconds (default: 100ms)
@@ -167,5 +175,30 @@ class HolochainServiceAppClient(
             delay(intervalMs)
             elapsedMs += intervalMs
         }
+    }
+
+    /**
+     * Polls until the Holochain service runtime is ready, or the timeout has elapsed.
+     *
+     * This is necessary because the service may be connected (onBind returned) but the
+     * Holochain conductor may not have finished starting yet.
+     *
+     * @param timeoutMs Maximum time to wait for service to be ready in milliseconds (default: 30000ms)
+     * @param intervalMs Time between readiness checks in milliseconds (default: 100ms)
+     * @return true if service became ready within timeout, false otherwise
+     */
+    suspend fun waitForServiceReady(
+        timeoutMs: Long = 30000L,
+        intervalMs: Long = 100L,
+    ): Boolean {
+        var elapsedMs = 0L
+        while (elapsedMs <= timeoutMs) {
+            Log.d(logTag, "waitForServiceReady " + elapsedMs)
+            if (this.isReady()) return true
+
+            delay(intervalMs)
+            elapsedMs += intervalMs
+        }
+        return false
     }
 }
