@@ -99,13 +99,18 @@ class HolochainServiceAppClient(
      * @param installAppPayload The payload containing app installation data
      * @param enableAfterInstall Whether to enable the app after installation
      * @return AppAuthFfi object containing authentication and connection information
+     * @throws HolochainServiceNotConnectedException if not connected to the service
      */
     suspend fun connectSetupApp(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
     ): AppAuthFfi {
         this.connect(installAppPayload.installedAppId!!)
-        this.waitForConnectReady()
+
+        if (!this.waitForConnectReady()) {
+            throw HolochainServiceNotConnectedException()
+        }
+
         this.waitForServiceReady()
         return this.setupApp(installAppPayload, enableAfterInstall)
     }
@@ -166,15 +171,16 @@ class HolochainServiceAppClient(
     private suspend fun waitForConnectReady(
         timeoutMs: Long = 100L,
         intervalMs: Long = 5L,
-    ) {
+    ): Boolean {
         var elapsedMs = 0L
         while (elapsedMs <= timeoutMs) {
             Log.d(logTag, "waitForConnectReady " + elapsedMs)
-            if (this.mService != null) break
+            if (this.mService != null) return true
 
             delay(intervalMs)
             elapsedMs += intervalMs
         }
+        return false
     }
 
     /**
