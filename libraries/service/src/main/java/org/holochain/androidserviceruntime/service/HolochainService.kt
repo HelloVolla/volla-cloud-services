@@ -584,6 +584,13 @@ class HolochainService : Service() {
         private var authorized = false
         private var clientPackageName: String? = null
 
+        // Is the conductor started and ready to receive calls
+        // No authorization needed
+        override fun isReady(): Boolean {
+            Log.d(logTag, "isReady")
+            return runtime != null
+        }
+
         // / Setup an app
         override fun setupApp(
             callback: IHolochainServiceCallback,
