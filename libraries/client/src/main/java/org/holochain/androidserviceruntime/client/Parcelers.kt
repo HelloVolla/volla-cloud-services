@@ -56,6 +56,7 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
             installedAppId!!,
             parcel.readString(),
             readRoleSettingsMap(parcel),
+            parcel.createByteArray(),
         )
     }
 
@@ -73,10 +74,8 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
         sourceSharedMemory.writeToParcel(parcel, flags)
         parcel.writeString(installedAppId)
         parcel.writeString(networkSeed)
-
-        if (rolesSettings != null) {
-            writeRoleSettingsMap(parcel, rolesSettings!!, flags)
-        }
+        writeRoleSettingsMap(parcel, rolesSettings, flags)
+        parcel.writeByteArray(agentKey)
     }
 
     private fun readRoleSettingsMap(parcel: Parcel): Map<String, RoleSettingsFfi>? {
@@ -101,15 +100,15 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
         map: Map<String, RoleSettingsFfi>?,
         flags: Int,
     ) {
-        if (map != null) {
-            parcel.writeInt(map.size)
-
-            map.forEach { (key, value) ->
-                parcel.writeString(key)
-                RoleSettingsFfiParcel(value).writeToParcel(parcel, flags)
-            }
-        } else {
+        if (map == null) {
             parcel.writeInt(0)
+            return
+        }
+        parcel.writeInt(map.size)
+
+        map.forEach { (key, value) ->
+            parcel.writeString(key)
+            RoleSettingsFfiParcel(value).writeToParcel(parcel, flags)
         }
     }
 

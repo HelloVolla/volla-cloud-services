@@ -328,6 +328,7 @@ pub struct InstallAppPayloadFfi {
     pub installed_app_id: String,
     pub network_seed: Option<String>,
     pub roles_settings: Option<HashMap<String, RoleSettingsFfi>>,
+    pub agent_key: Option<Vec<u8>>,
 }
 
 impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
@@ -335,7 +336,7 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
             source: AppBundleSource::Bytes(self.source.into()),
-            agent_key: None,
+            agent_key: self.agent_key.map(|k| HoloHash::<Agent>::from_raw_39(k)),
             installed_app_id: Some(self.installed_app_id),
             network_seed: self.network_seed,
             roles_settings: self

@@ -10,4 +10,5 @@ interface IHolochainServiceApp {
     void enableApp(IHolochainServiceCallback callback);
     void ensureAppWebsocket(IHolochainServiceCallback callback);
     void signZomeCall(IHolochainServiceCallback callback, in ZomeCallParamsFfiParcel request);
+    void importKeySeed(IHolochainServiceCallback callback, in byte[] seed);
 }

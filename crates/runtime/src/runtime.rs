@@ -7,7 +7,7 @@ use holochain::{
         api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
         ConductorBuilder, ConductorHandle,
     },
-    prelude::{InstallAppPayload, InstalledAppId, ZomeCallParams},
+    prelude::{AgentPubKey, InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
 use holochain_types::websocket::AllowedOrigins;
 use lair_keystore_api::types::SharedLockedArray;
@@ -143,6 +143,50 @@ impl Runtime {
             .await?
             .into_iter()
             .any(|app_info| app_info.installed_app_id == installed_app_id))
+    }
+
+    pub async fn import_key_seed(&self, seed: [u8; 32]) -> RuntimeResult<AgentPubKey> {
+        let client = self.conductor.keystore().lair_client();
+
+        // Generate a temporary local x25519 keypair for the sender side.
+        // This keypair never enters Lair — it is only used to box-encrypt the seed.
+        let mut sender_pk = [0u8; sodoken::crypto_box::XSALSA_PUBLICKEYBYTES];
+        let mut sender_sk = sodoken::SizedLockedArray::new().map_err(|e| RuntimeError::Lair(e.into()))?;
+        sodoken::crypto_box::xsalsa_keypair(&mut sender_pk, &mut sender_sk.lock())
+            .map_err(|e| RuntimeError::Lair(e.into()))?;
+
+        // Generate a second temporary local x25519 keypair for the recipient side.
+        // Lair's `import_seed` decrypts with the private key of the recipient entry,
+        // so we first need to create a Lair seed entry to act as the recipient.
+        let recipient_info = client
+            .new_seed(uuid::Uuid::new_v4().to_string().into(), None, false)
+            .await
+            .map_err(RuntimeError::Lair)?;
+        let recipient_pk = recipient_info.x25519_pub_key;
+
+        // Box-encrypt the seed bytes for the recipient.
+        let mut nonce = [0u8; sodoken::crypto_box::XSALSA_NONCEBYTES];
+        sodoken::random::randombytes_buf(&mut nonce).map_err(|e| RuntimeError::Lair(e.into()))?;
+        let mut cipher = vec![0u8; 32 + sodoken::crypto_box::XSALSA_MACBYTES];
+        sodoken::crypto_box::xsalsa_easy(&mut cipher, &seed, &nonce, &recipient_pk, &sender_sk.lock())
+            .map_err(|e| RuntimeError::Lair(e.into()))?;
+
+        // Import the encrypted seed into Lair under a fresh tag.
+        // Lair uses the recipient entry's private key to decrypt and store the seed.
+        let seed_info = client
+            .import_seed(
+                sender_pk.into(),
+                recipient_pk,
+                None,
+                nonce,
+                cipher.into(),
+                uuid::Uuid::new_v4().to_string().into(),
+                false,
+            )
+            .await
+            .map_err(RuntimeError::Lair)?;
+
+        Ok(AgentPubKey::from_raw_32(seed_info.ed25519_pub_key.0.to_vec()))
     }
 
     pub async fn sign_zome_call(

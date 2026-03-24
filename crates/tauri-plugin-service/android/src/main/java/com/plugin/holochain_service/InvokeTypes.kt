@@ -13,6 +13,7 @@ class InstallAppPayloadFfiInvokeArg {
     lateinit var installedAppId: String
     lateinit var networkSeed: String
     lateinit var roleSettings: Map<String, RoleSettingsFfi>
+    var agentKey: ByteArray? = null
 }
 
 fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi =
@@ -21,6 +22,7 @@ fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi =
         this.installedAppId,
         this.networkSeed,
         this.roleSettings,
+        this.agentKey,
     )
 
 @InvokeArg
