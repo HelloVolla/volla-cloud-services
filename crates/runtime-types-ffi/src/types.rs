@@ -328,6 +328,7 @@ pub struct InstallAppPayloadFfi {
     pub installed_app_id: String,
     pub network_seed: Option<String>,
     pub roles_settings: Option<HashMap<String, RoleSettingsFfi>>,
+    #[uniffi(default = None)]
     pub agent_key: Option<Vec<u8>>,
 }
 
