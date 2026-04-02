@@ -254,6 +254,25 @@ class HolochainServiceAdminClient(
     }
 
     /**
+     * Imports a private key seed into the Lair keystore.
+     *
+     * @param seed 32-byte private key seed
+     * @return AgentPubKey (raw bytes) of the imported key
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
+    suspend fun importKeySeed(seed: ByteArray): ByteArray {
+        Log.d(logTag, "importKeySeed")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
+        }
+
+        val callbackDeferred = ImportKeySeedCallbackDeferred()
+        this.mService!!.importKeySeed(callbackDeferred, seed)
+
+        return callbackDeferred.await()
+    }
+
+    /**
      * Gets or creates an app websocket with authentication token.
      *
      * @param installedAppId The ID of the app to create a websocket for

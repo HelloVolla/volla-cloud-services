@@ -533,6 +533,26 @@ class HolochainService : Service() {
             }
         }
 
+        override fun importKeySeed(
+            callback: IHolochainServiceCallback,
+            seed: ByteArray,
+        ) {
+            Log.d(logTag, "importKeySeed")
+            if (!this.isAuthorized()) {
+                callbackUnauthorized(callback)
+                return
+            }
+
+            serviceScope.launch(Dispatchers.IO) {
+                try {
+                    val agentPubKey = runtime!!.importKeySeed(seed)
+                    callback.importKeySeed(agentPubKey)
+                } catch (e: Exception) {
+                    callback.onFailure(e.toString())
+                }
+            }
+        }
+
         // We cannot call Binder.getCallingUid() within the onBind callback,
         // so instead we check the authorization within each IPC call
         private fun loadClientPackageName() {
@@ -652,7 +672,31 @@ class HolochainService : Service() {
             }
 
             serviceScope.launch(Dispatchers.IO) {
-                callback.signZomeCall(ZomeCallParamsSignedFfiParcel(runtime!!.signZomeCall(req.inner)))
+                try {
+                    callback.signZomeCall(ZomeCallParamsSignedFfiParcel(runtime!!.signZomeCall(req.inner)))
+                } catch (e: Exception) {
+                    callback.onFailure(e.toString())
+                }
+            }
+        }
+
+        override fun importKeySeed(
+            callback: IHolochainServiceCallback,
+            seed: ByteArray,
+        ) {
+            Log.d(logTag, "importKeySeed")
+            if (!this.isAuthorized()) {
+                requestUserAuthorization(callback)
+                return
+            }
+
+            serviceScope.launch(Dispatchers.IO) {
+                try {
+                    val agentPubKey = runtime!!.importKeySeed(seed)
+                    callback.importKeySeed(agentPubKey)
+                } catch (e: Exception) {
+                    callback.onFailure(e.toString())
+                }
             }
         }
 
