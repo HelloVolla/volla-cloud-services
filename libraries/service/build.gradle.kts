@@ -43,7 +43,7 @@ android {
 }
 
 mavenPublishing {
-  coordinates("org.holochain.androidserviceruntime", "service", "0.0.21")
+  coordinates("org.holochain.androidserviceruntime", "service", "0.0.22")
 
   pom {
     name.set("Holochain Service")
