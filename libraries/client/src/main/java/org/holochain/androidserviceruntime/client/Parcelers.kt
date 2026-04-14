@@ -498,12 +498,14 @@ object RuntimeNetworkConfigFfiParceler : Parceler<RuntimeNetworkConfigFfi> {
     override fun create(parcel: Parcel): RuntimeNetworkConfigFfi {
         val bootstrapUrl = parcel.readString() ?: ""
         val signalUrl = parcel.readString() ?: ""
+        val relayUrl = parcel.readString() ?: ""
         var iceUrls = mutableListOf<String>()
         parcel.readStringList(iceUrls)
 
         return RuntimeNetworkConfigFfi(
             bootstrapUrl = bootstrapUrl,
             signalUrl = signalUrl,
+            relayUrl = relayUrl,
             iceUrls = iceUrls,
         )
     }
@@ -514,6 +516,7 @@ object RuntimeNetworkConfigFfiParceler : Parceler<RuntimeNetworkConfigFfi> {
     ) {
         parcel.writeString(bootstrapUrl)
         parcel.writeString(signalUrl)
+        parcel.writeString(relayUrl)
         parcel.writeStringList(iceUrls)
     }
 }
