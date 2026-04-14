@@ -16,8 +16,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_holochain_service::init(
             RuntimeNetworkConfigFfi {
-                bootstrap_url: "https://relay.volla.tech".to_string(),
-                signal_url: "wss://relay.volla.tech".to_string(),
+                bootstrap_url: "https://relay2.volla.tech".to_string(),
+                signal_url: "wss://relay2.volla.tech".to_string(),
+                relay_url: "https://iroh-relay.volla.tech".to_string(),
                 ice_urls: vec!["stun:stun.nextcloud.com:443".to_string()],
             },
         ))

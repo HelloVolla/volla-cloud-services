@@ -23,6 +23,9 @@ pub struct RuntimeNetworkConfig {
     /// URL of the sbd server
     pub signal_url: Url2,
 
+    /// URL of the iroh-raly server
+    pub relay_url: Url2,
+
     /// URLs of ICE servers
     pub ice_urls: Vec<Url2>,
 }
@@ -30,8 +33,9 @@ pub struct RuntimeNetworkConfig {
 impl Default for RuntimeNetworkConfig {
     fn default() -> Self {
         Self {
-            bootstrap_url: Url2::parse("https://relay.volla.tech"),
-            signal_url: Url2::parse("wss://relay.volla.tech"),
+            bootstrap_url: Url2::parse("https://relay2.volla.tech"),
+            signal_url: Url2::parse("wss://relay2.volla.tech"),
+            relay_url: Url2::parse("https://iroh-relay.volla.tech"),
             ice_urls: vec![Url2::parse("stun:stun.nextcloud.com:443")],
         }
     }
@@ -42,6 +46,7 @@ impl From<RuntimeNetworkConfig> for NetworkConfig {
         NetworkConfig {
             bootstrap_url: val.bootstrap_url,
             signal_url: val.signal_url,
+            relay_url: val.relay_url,
             webrtc_config: Some(json!({
                 "iceServers": val.ice_urls
                     .clone()
