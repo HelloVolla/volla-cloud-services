@@ -31,6 +31,7 @@ impl RuntimeFfi {
                 network: RuntimeNetworkConfig {
                     bootstrap_url: Url2::try_parse(runtime_config.network.bootstrap_url)?,
                     signal_url: Url2::try_parse(runtime_config.network.signal_url)?,
+                    relay_url: Url2::try_parse(runtime_config.network.relay_url)?,
                     ice_urls: runtime_config
                         .network
                         .ice_urls
