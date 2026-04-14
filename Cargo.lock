@@ -8931,7 +8931,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service"
-version = "0.2.4"
+version = "0.3.0"
 dependencies = [
  "holochain-conductor-runtime-types-ffi",
  "serde",
@@ -8942,7 +8942,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service-client"
-version = "0.2.4"
+version = "0.3.0"
 dependencies = [
  "bytes",
  "holochain-conductor-runtime-types-ffi",
