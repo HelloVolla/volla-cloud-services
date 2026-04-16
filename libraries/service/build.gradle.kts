@@ -98,7 +98,7 @@ configure<SigningExtension> {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.21")
+  implementation("org.holochain.androidserviceruntime:client:0.0.23")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")
