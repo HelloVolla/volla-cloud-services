@@ -65,5 +65,6 @@ fun RuntimeNetworkConfigFfiInvokeArg.toFfi(): RuntimeNetworkConfigFfi =
     RuntimeNetworkConfigFfi(
         this.bootstrapUrl,
         this.signalUrl,
+        this.relayUrl,
         this.iceUrls,
     )
