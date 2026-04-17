@@ -1,6 +1,6 @@
 [package]
 name = "android-service-runtime"
-version = "0.3.1"
+version = "0.3.2"
 description = "Volla Holochain Admin"
 authors = ["you"]
 license = ""
