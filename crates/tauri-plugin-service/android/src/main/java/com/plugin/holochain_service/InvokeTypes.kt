@@ -58,6 +58,7 @@ fun ZomeCallParamsFfiInvokeArg.toFfi(): ZomeCallParamsFfi =
 class RuntimeNetworkConfigFfiInvokeArg {
     lateinit var bootstrapUrl: String
     lateinit var signalUrl: String
+    lateinit var relayUrl: String
     lateinit var iceUrls: List<String>
 }
 
