@@ -382,6 +382,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
         let signal_url = Url2::try_parse("wss://signal.com").unwrap();
+        let relay_url = Url2::try_parse("https://relay.com").unwrap();
         let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
         let ice_urls = vec![stun_url.clone()];
 
@@ -392,6 +393,7 @@ mod test {
                 network: RuntimeNetworkConfig {
                     bootstrap_url: bootstrap_url.clone(),
                     signal_url: signal_url.clone(),
+                    relay_url: relay_url.clone(),
                     ice_urls: ice_urls.clone(),
                 },
             },

@@ -366,6 +366,8 @@ pub struct RuntimeNetworkConfigFfi {
     /// URL of the sbd server
     pub signal_url: String,
 
+    pub relay_url: String,
+    
     /// URLs of ICE servers
     pub ice_urls: Vec<String>,
 }
@@ -375,6 +377,7 @@ impl Default for RuntimeNetworkConfigFfi {
         Self {
             bootstrap_url: "https://dev-test-bootstrap2.holochain.org".to_string(),
             signal_url: "wss://dev-test-bootstrap2.holochain.org".to_string(),
+            relay_url: "https://iroh-relay.volla.tech".to_string(),
             ice_urls: vec![
                 "stun:stun.cloudflare.com:3478".to_string(),
                 "stun:stun.l.google.com:19302".to_string(),

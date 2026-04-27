@@ -198,8 +198,8 @@ class HolochainService : Service() {
         val notification =
             NotificationCompat
                 .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
-                .setContentTitle("Holochain Service")
-                .setContentText("Holochain Service is running")
+                .setContentTitle("Cloud Service")
+                .setContentText("Volla Cloud Service is running")
                 .setSmallIcon(R.drawable.holochain_logo)
                 .setOngoing(true)
                 .build()
