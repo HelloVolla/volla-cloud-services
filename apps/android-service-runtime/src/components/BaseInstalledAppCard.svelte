@@ -18,7 +18,7 @@
 <div class="px-4 py-8 bg-base-200 border-b-2 border-solid border-gray-300">
   <div class="flex justify-between items-start">
     <h3 class="m-0">{appInfo.installedAppId.split('-')[0]}</h3>
-    <BaseLoadingToggle loading={loadingToggleEnable} value={appInfo.status.type === "Running"} on:toggle={() => dispatch('toggleEnable')} />
+    <BaseLoadingToggle loading={loadingToggleEnable} value={appInfo.status.type === "Enabled"} on:toggle={() => dispatch('toggleEnable')} />
   </div>
   <div class="mt-4">
     <BaseLabelled label={$_('app_id')}>{appInfo.installedAppId}</BaseLabelled>
