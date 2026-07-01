@@ -2,6 +2,11 @@
 
 - The 'Open Settings' button will first attempt to open the android-service-runtime app via the system settings (i.e. for 'system' builds). If that fails it will fallback to opening the app via the launcher (i.e. for 'user' builds).
 
+# 0.3.3
+- fix toggle issue in my apps tab
+
+# 0.3.2
+- bump to holochain 0.6.1-rc.7
 
 # 0.2.4
 - bump to holochain 0.6.0

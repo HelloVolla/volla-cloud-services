@@ -55,7 +55,7 @@ export const loadIsRunning = async () => {
 export const toggleEnableApp = async (appInfo: AppInfo) => {
   loadingToggleEnableApp.update((t) => ({...t, [appInfo.installedAppId]: true}));
   try {
-    if(appInfo.status.type === "Running") {
+    if(appInfo.status.type === "Enabled") {
       await disableApp(appInfo.installedAppId);
     } else {
       await enableApp(appInfo.installedAppId)
