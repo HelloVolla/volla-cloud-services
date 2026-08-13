@@ -1,0 +1,7 @@
+# hdk/hdi >= holochain 0.6.1 depend on getrandom 0.3, which refuses to compile
+# for wasm32-unknown-unknown unless a backend is chosen. The hdk provides the
+# "custom" backend implementation (__getrandom_v03_custom, backed by the
+# conductor's random_bytes host function), so zome wasm builds must declare it.
+# Same configuration that `hc-scaffold` generates for new hApps.
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="custom"']
