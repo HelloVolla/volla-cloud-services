@@ -9,11 +9,10 @@ import {
   fakeAgentPubKey,
   fakeEntryHash,
   Link,
-  NewEntryAction,
   Record,
   SignedActionHashed,
 } from "@holochain/client";
-import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
+import { CallableCell, dhtSync, runScenario } from "@holochain-open-dev/tryorama";
 import { decode } from "@msgpack/msgpack";
 
 import { createComment, sampleComment } from "./common.js";
@@ -25,7 +24,7 @@ test("create Comment", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -48,7 +47,7 @@ test("create and read Comment", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -93,7 +92,7 @@ test("create and delete Comment", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -156,7 +155,7 @@ test("create and delete Comment", async () => {
     assert.equal(linksToPosts.length, 0);
 
     // Bob gets the deleted Posts for the Comment
-    const deletedLinksToPosts: Array<[SignedActionHashed<CreateLink>, SignedActionHashed<DeleteLink>[]]> = await bob
+    const deletedLinksToPosts: Array<[SignedActionHashed, SignedActionHashed[]]> = await bob
       .cells[0].callZome({
         zome_name: "posts",
         fn_name: "get_deleted_comments_for_post",

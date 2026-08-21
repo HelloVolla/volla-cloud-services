@@ -72,6 +72,7 @@ impl Runtime {
     /// This is *NOT* fully implemented by holochain: kitsune tasks will continue to run.
     pub async fn stop(&self) -> RuntimeResult<()> {
         self.conductor
+            .clone()
             .shutdown()
             .await
             .map_err(|e| RuntimeError::ConductorShutdown(e.to_string()))?
@@ -108,9 +109,7 @@ impl Runtime {
             .req_admin_api(AdminRequest::EnableApp { installed_app_id })
             .await?;
         match response {
-            AdminResponse::AppEnabled(app) => {
-                Ok(app)
-            }
+            AdminResponse::AppEnabled(app) => Ok(app),
             fail => Err(RuntimeError::AdminApiBadResponse(fail)),
         }
     }
@@ -151,7 +150,8 @@ impl Runtime {
         // Generate a temporary local x25519 keypair for the sender side.
         // This keypair never enters Lair — it is only used to box-encrypt the seed.
         let mut sender_pk = [0u8; sodoken::crypto_box::XSALSA_PUBLICKEYBYTES];
-        let mut sender_sk = sodoken::SizedLockedArray::new().map_err(|e| RuntimeError::Lair(e.into()))?;
+        let mut sender_sk =
+            sodoken::SizedLockedArray::new().map_err(|e| RuntimeError::Lair(e.into()))?;
         sodoken::crypto_box::xsalsa_keypair(&mut sender_pk, &mut sender_sk.lock())
             .map_err(|e| RuntimeError::Lair(e.into()))?;
 
@@ -168,8 +168,14 @@ impl Runtime {
         let mut nonce = [0u8; sodoken::crypto_box::XSALSA_NONCEBYTES];
         sodoken::random::randombytes_buf(&mut nonce).map_err(|e| RuntimeError::Lair(e.into()))?;
         let mut cipher = vec![0u8; 32 + sodoken::crypto_box::XSALSA_MACBYTES];
-        sodoken::crypto_box::xsalsa_easy(&mut cipher, &seed, &nonce, &recipient_pk, &sender_sk.lock())
-            .map_err(|e| RuntimeError::Lair(e.into()))?;
+        sodoken::crypto_box::xsalsa_easy(
+            &mut cipher,
+            &seed,
+            &nonce,
+            &recipient_pk,
+            &sender_sk.lock(),
+        )
+        .map_err(|e| RuntimeError::Lair(e.into()))?;
 
         // Import the encrypted seed into Lair under a fresh tag.
         // Lair uses the recipient entry's private key to decrypt and store the seed.
@@ -186,7 +192,9 @@ impl Runtime {
             .await
             .map_err(RuntimeError::Lair)?;
 
-        Ok(AgentPubKey::from_raw_32(seed_info.ed25519_pub_key.0.to_vec()))
+        Ok(AgentPubKey::from_raw_32(
+            seed_info.ed25519_pub_key.0.to_vec(),
+        ))
     }
 
     pub async fn sign_zome_call(
@@ -282,6 +290,7 @@ impl Runtime {
         self.ensure_app_websocket(installed_app_id).await
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn authorize_app_client(
         &self,
         client_uid: ClientId,
@@ -291,6 +300,7 @@ impl Runtime {
             .authorize(client_uid, installed_app_id)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn is_app_client_authorized(
         &self,
         client_uid: ClientId,
@@ -349,12 +359,11 @@ mod test {
     use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
     use holochain_types::prelude::AppBundleSource;
+    use holochain_types::prelude::AppStatus;
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
-    use holochain_types::prelude::AppStatus;
 
-    use serde_json::json;
     use sodoken::LockedArray;
     use std::sync::Mutex;
     use tempfile::TempDir;
@@ -372,6 +381,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await
             .unwrap()
@@ -381,10 +391,7 @@ mod test {
     async fn test_new_runtime() {
         let tmp_dir = TempDir::new().unwrap();
         let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
-        let signal_url = Url2::try_parse("wss://signal.com").unwrap();
         let relay_url = Url2::try_parse("https://relay.com").unwrap();
-        let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
-        let ice_urls = vec![stun_url.clone()];
 
         let runtime = Runtime::new(
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
@@ -392,9 +399,9 @@ mod test {
                 data_root_path: tmp_dir.path().into(),
                 network: RuntimeNetworkConfig {
                     bootstrap_url: bootstrap_url.clone(),
-                    signal_url: signal_url.clone(),
+                    signal_url: Url2::try_parse("wss://signal.com").unwrap(),
                     relay_url: relay_url.clone(),
-                    ice_urls: ice_urls.clone(),
+                    ice_urls: vec![Url2::try_parse("stun:stun.com:1234").unwrap()],
                 },
             },
         )
@@ -420,22 +427,8 @@ mod test {
             bootstrap_url
         );
         assert_eq!(
-            runtime.conductor.config.network.signal_url.clone(),
-            signal_url
-        );
-        assert_eq!(
-            runtime
-                .conductor
-                .config
-                .network
-                .webrtc_config
-                .clone()
-                .unwrap(),
-            json!({
-                "iceServers": [
-                    { "urls": [stun_url.to_string()] },
-                ]
-            })
+            runtime.conductor.config.network.relay_url.clone(),
+            relay_url
         );
 
         let res = AdminInterfaceApi::new(runtime.conductor)
@@ -488,6 +481,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await;
         assert!(res.is_ok());
@@ -563,9 +557,7 @@ mod test {
         assert_eq!(apps.len(), 1);
         assert!(matches!(
             apps.first().unwrap().status,
-            AppStatus::Disabled (
-                DisabledAppReason::User
-            )
+            AppStatus::Disabled(DisabledAppReason::User)
         ));
     }
 
@@ -748,6 +740,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 false,
             )
@@ -766,6 +759,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 false,
             )
@@ -799,6 +793,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 false,
             )
@@ -834,6 +829,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 true,
             )
@@ -841,9 +837,6 @@ mod test {
         assert!(res.is_ok());
 
         let apps = runtime.list_apps().await.unwrap();
-        assert!(matches!(
-            apps.first().unwrap().status,
-            AppStatus::Enabled
-        ));
+        assert!(matches!(apps.first().unwrap().status, AppStatus::Enabled));
     }
 }

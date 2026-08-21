@@ -3,18 +3,15 @@ use holochain_conductor_api::{
     ZomeCallParamsSigned,
 };
 use holochain_types::{
-    app::{
-        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
-        RoleSettings,
-    },
+    app::{AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload, RoleSettings},
     dna::{
         hash_type::{Agent, Dna},
         HoloHash,
     },
     prelude::{
-        AppStatus, CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
-        Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallParams,
-        ZomeName,
+        AppStatus, CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO,
+        FunctionName, Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties,
+        ZomeCallParams, ZomeName,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -152,16 +149,20 @@ pub enum AppStatusFfi {
     Disabled { reason: DisabledAppReasonFfi },
     Enabled,
     AwaitingMemproofs,
+    AwaitingRestore,
+    Unrecoverable,
 }
 
 impl From<AppStatus> for AppStatusFfi {
     fn from(value: AppStatus) -> Self {
         match value {
-            AppStatus::Disabled (disabled) => AppStatusFfi::Disabled {
+            AppStatus::Disabled(disabled) => AppStatusFfi::Disabled {
                 reason: disabled.into(),
             },
             AppStatus::Enabled => AppStatusFfi::Enabled,
             AppStatus::AwaitingMemproofs => AppStatusFfi::AwaitingMemproofs,
+            AppStatus::AwaitingRestore => AppStatusFfi::AwaitingRestore,
+            AppStatus::Unrecoverable(_, _) => AppStatusFfi::Unrecoverable,
         }
     }
 }
@@ -316,6 +317,7 @@ impl From<RoleSettingsFfi> for RoleSettings {
                 membrane_proof: membrane_proof
                     .map(|p| std::sync::Arc::new(SerializedBytes::from(UnsafeBytes::from(p)))),
                 modifiers: modifiers.map(|m| m.into()),
+                init_properties: None,
             },
         }
     }
@@ -330,6 +332,8 @@ pub struct InstallAppPayloadFfi {
     pub roles_settings: Option<HashMap<String, RoleSettingsFfi>>,
     #[uniffi(default = None)]
     pub agent_key: Option<Vec<u8>>,
+    #[uniffi(default = false)]
+    pub restore_from_dht: bool,
 }
 
 impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
@@ -337,13 +341,14 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
             source: AppBundleSource::Bytes(self.source.into()),
-            agent_key: self.agent_key.map(|k| HoloHash::<Agent>::from_raw_39(k)),
+            agent_key: self.agent_key.map(HoloHash::<Agent>::from_raw_39),
             installed_app_id: Some(self.installed_app_id),
             network_seed: self.network_seed,
             roles_settings: self
                 .roles_settings
                 .map(|r| r.into_iter().map(|(k, v)| (k, v.into())).collect()),
             ignore_genesis_failure: false,
+            restore_from_dht: self.restore_from_dht,
         })
     }
 }
@@ -367,7 +372,7 @@ pub struct RuntimeNetworkConfigFfi {
     pub signal_url: String,
 
     pub relay_url: String,
-    
+
     /// URLs of ICE servers
     pub ice_urls: Vec<String>,
 }

@@ -5,7 +5,12 @@
 //! Additionally, some features are included to fulfil its use as an Android runtime. These may or may not be be useful for other contexts. These are:
 //!
 //! - Autostart management: tracking if the runtime should be started on system launch. This logic is located in ['autostart.rs']('./src/autostart.rs').
-//! - App Client Authorization: tracking which end-user android apps (specified by a package identifier) are allowed to call specified holochain apps. This logic is located in ['authorization.rs'](./src/authorization.rs).
+//! - App Client Authorization: tracking which end-user android apps (specified by a package identifier) are allowed to call specified holochain apps. This logic is located in ['authorization.rs']('./src/authorization.rs').
+
+// `RuntimeError::AdminApiBadResponse` intentionally carries the full
+// `AdminResponse` for diagnostics; silence the size lint this trips on every
+// `RuntimeResult` return site.
+#![allow(clippy::result_large_err)]
 
 mod runtime;
 pub use runtime::*;

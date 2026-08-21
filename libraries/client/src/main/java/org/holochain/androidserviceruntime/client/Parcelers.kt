@@ -199,6 +199,8 @@ object AppStatusFfiParceler : Parceler<AppStatusFfi> {
             }
             is AppStatusFfi.Enabled -> parcel.writeInt(2)
             is AppStatusFfi.AwaitingMemproofs -> parcel.writeInt(3)
+            is AppStatusFfi.AwaitingRestore -> parcel.writeInt(4)
+            is AppStatusFfi.Unrecoverable -> parcel.writeInt(5)
         }
     }
 }

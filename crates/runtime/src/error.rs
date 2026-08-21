@@ -5,6 +5,9 @@ use holochain::{
 use lair_keystore_api::dependencies::one_err::OneErr;
 use thiserror::Error;
 
+// `AdminApiBadResponse` intentionally carries the full `AdminResponse` for
+// diagnostics, which trips clippy's size lints.
+#[allow(clippy::large_enum_variant, clippy::result_large_err)]
 #[derive(Error, Debug)]
 pub enum RuntimeError {
     #[error(transparent)]

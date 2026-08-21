@@ -9,11 +9,10 @@ import {
   fakeAgentPubKey,
   fakeEntryHash,
   Link,
-  NewEntryAction,
   Record,
   SignedActionHashed,
 } from "@holochain/client";
-import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
+import { CallableCell, dhtSync, runScenario } from "@holochain-open-dev/tryorama";
 import { decode } from "@msgpack/msgpack";
 
 import { createPost, samplePost } from "./common.js";
@@ -25,7 +24,7 @@ test("create Post", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -48,7 +47,7 @@ test("create and read Post", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -84,7 +83,7 @@ test("create and update Post", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.
@@ -170,7 +169,7 @@ test("create and delete Post", async () => {
     const testAppPath = process.cwd() + "/../workdir/forum.happ";
 
     // Set up the app to be installed
-    const appSource = { appBundleSource: { path: testAppPath } };
+    const appSource = { appBundleSource: { type: "path" as const, value: testAppPath } };
 
     // Add 2 players with the test app to the Scenario. The returned players
     // can be destructured.

@@ -1,6 +1,5 @@
 use holochain::conductor::config::{ConductorConfig, KeystoreConfig, NetworkConfig};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::path::PathBuf;
 use url2::Url2;
 
@@ -43,17 +42,13 @@ impl Default for RuntimeNetworkConfig {
 
 impl From<RuntimeNetworkConfig> for NetworkConfig {
     fn from(val: RuntimeNetworkConfig) -> NetworkConfig {
+        // holochain 0.7 dropped the SBD signal server and WebRTC transport:
+        // only the bootstrap and iroh relay URLs are mapped. `signal_url` and
+        // `ice_urls` are kept on the runtime config for API compatibility but
+        // are ignored by kitsune2.
         NetworkConfig {
             bootstrap_url: val.bootstrap_url,
-            signal_url: val.signal_url,
             relay_url: val.relay_url,
-            webrtc_config: Some(json!({
-                "iceServers": val.ice_urls
-                    .clone()
-                    .into_iter()
-                    .map(|u| json!({"urls": [u]}))
-                    .collect::<Vec<serde_json::Value>>()
-            })),
             ..NetworkConfig::default()
         }
     }

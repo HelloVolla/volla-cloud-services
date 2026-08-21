@@ -2,6 +2,9 @@ use holochain_conductor_runtime::RuntimeError;
 use holochain_types::app::AppBundleError;
 use url2::Url2Error;
 
+// The `Runtime` variant wraps `RuntimeError`, which intentionally carries the
+// full `AdminResponse` in `AdminApiBadResponse` for diagnostics.
+#[allow(clippy::large_enum_variant)]
 #[derive(uniffi::Error, thiserror::Error, Debug)]
 #[uniffi(flat_error)]
 pub enum RuntimeErrorFfi {

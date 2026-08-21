@@ -153,7 +153,9 @@ impl RuntimeFfi {
     pub async fn import_key_seed(&self, seed: Vec<u8>) -> RuntimeResultFfi<Vec<u8>> {
         debug!("RuntimeFfi::import_key_seed");
         let seed: [u8; 32] = seed.try_into().map_err(|_| {
-            holochain_conductor_runtime::RuntimeError::InvalidArguments("Seed must be 32 bytes".to_string())
+            holochain_conductor_runtime::RuntimeError::InvalidArguments(
+                "Seed must be 32 bytes".to_string(),
+            )
         })?;
         let agent_pub_key = self.0.import_key_seed(seed).await?;
         Ok(agent_pub_key.into_inner())
@@ -202,6 +204,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 agent_key: None,
+                restore_from_dht: false,
             })
             .await
             .unwrap()
@@ -267,6 +270,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 agent_key: None,
+                restore_from_dht: false,
             })
             .await;
         assert!(res.is_ok());
@@ -516,6 +520,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     agent_key: None,
+                    restore_from_dht: false,
                 },
                 true,
             )

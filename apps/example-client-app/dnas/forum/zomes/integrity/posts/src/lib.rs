@@ -58,44 +58,47 @@ pub fn validate_agent_joining(
 #[hdk_extern]
 pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     match op.flattened::<EntryTypes, LinkTypes>()? {
-        FlatOp::StoreEntry(store_entry) => match store_entry {
-            OpEntry::CreateEntry { app_entry, action } => match app_entry {
-                EntryTypes::Post(post) => {
-                    validate_create_post(EntryCreationAction::Create(action), post)
-                }
-                EntryTypes::Comment(comment) => {
-                    validate_create_comment(EntryCreationAction::Create(action), comment)
-                }
-            },
-            OpEntry::UpdateEntry {
-                app_entry, action, ..
-            } => match app_entry {
-                EntryTypes::Post(post) => {
-                    validate_create_post(EntryCreationAction::Update(action), post)
-                }
-                EntryTypes::Comment(comment) => {
-                    validate_create_comment(EntryCreationAction::Update(action), comment)
-                }
-            },
-            _ => Ok(ValidateCallbackResult::Valid),
-        },
-        FlatOp::RegisterUpdate(update_entry) => match update_entry {
-            OpUpdate::Entry { app_entry, action } => {
-                let original_action = must_get_action(action.clone().original_action_address)?
-                    .action()
-                    .to_owned();
-                let original_create_action = match EntryCreationAction::try_from(original_action) {
-                    Ok(action) => action,
-                    Err(e) => {
-                        return Ok(ValidateCallbackResult::Invalid(format!(
-                            "Expected to get EntryCreationAction from Action: {e:?}"
-                        )));
-                    }
+        FlatOp::CreateEntry(op_entry) => match op_entry {
+            OpEntry::CreateEntry { app_entry, action } => {
+                let action = TypedAction {
+                    header: action.header,
+                    data: EntryCreationData::Create(action.data),
                 };
                 match app_entry {
+                    EntryTypes::Post(post) => validate_create_post(action, post),
+                    EntryTypes::Comment(comment) => validate_create_comment(action, comment),
+                }
+            }
+            OpEntry::UpdateEntry { app_entry, action } => {
+                let action = TypedAction {
+                    header: action.header,
+                    data: EntryCreationData::Update(action.data),
+                };
+                match app_entry {
+                    EntryTypes::Post(post) => validate_create_post(action, post),
+                    EntryTypes::Comment(comment) => validate_create_comment(action, comment),
+                }
+            }
+            _ => Ok(ValidateCallbackResult::Valid),
+        },
+        FlatOp::Update(update_entry) => match update_entry {
+            OpUpdate::Entry { app_entry, action } => {
+                let original_action_hash = action.original_action_address.clone();
+                let original_action = must_get_action(original_action_hash.clone())?
+                    .action()
+                    .to_owned();
+                let original_create_action =
+                    match TypedAction::<EntryCreationData>::try_from(original_action) {
+                        Ok(action) => action,
+                        Err(e) => {
+                            return Ok(ValidateCallbackResult::Invalid(format!(
+                                "Expected original action to create an entry: {e:?}"
+                            )));
+                        }
+                    };
+                match app_entry {
                     EntryTypes::Comment(comment) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.clone().original_action_address)?;
+                        let original_app_entry = must_get_valid_record(original_action_hash)?;
                         let original_comment = match Comment::try_from(original_app_entry) {
                             Ok(entry) => entry,
                             Err(e) => {
@@ -112,8 +115,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                         )
                     }
                     EntryTypes::Post(post) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.clone().original_action_address)?;
+                        let original_app_entry = must_get_valid_record(original_action_hash)?;
                         let original_post = match Post::try_from(original_app_entry) {
                             Ok(entry) => entry,
                             Err(e) => {
@@ -128,20 +130,21 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             }
             _ => Ok(ValidateCallbackResult::Valid),
         },
-        FlatOp::RegisterDelete(delete_entry) => {
-            let original_action_hash = delete_entry.clone().action.deletes_address;
+        FlatOp::Delete(OpDelete { action }) => {
+            let original_action_hash = action.deletes_address.clone();
             let original_record = must_get_valid_record(original_action_hash)?;
             let original_record_action = original_record.action().clone();
-            let original_action = match EntryCreationAction::try_from(original_record_action) {
-                Ok(action) => action,
-                Err(e) => {
-                    return Ok(ValidateCallbackResult::Invalid(format!(
-                        "Expected to get EntryCreationAction from Action: {e:?}"
-                    )));
-                }
-            };
+            let original_action =
+                match TypedAction::<EntryCreationData>::try_from(original_record_action) {
+                    Ok(action) => action,
+                    Err(e) => {
+                        return Ok(ValidateCallbackResult::Invalid(format!(
+                            "Expected original action to create an entry: {e:?}"
+                        )));
+                    }
+                };
             let app_entry_type = match original_action.entry_type() {
-                EntryType::App(app_entry_type) => app_entry_type,
+                EntryType::App(app_entry_type) => app_entry_type.clone(),
                 _ => {
                     return Ok(ValidateCallbackResult::Valid);
                 }
@@ -168,320 +171,306 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 }
             };
             match original_app_entry {
-                EntryTypes::Comment(original_comment) => validate_delete_comment(
-                    delete_entry.clone().action,
-                    original_action,
-                    original_comment,
-                ),
-                EntryTypes::Post(original_post) => validate_delete_post(
-                    delete_entry.clone().action,
-                    original_action,
-                    original_post,
-                ),
+                EntryTypes::Comment(original_comment) => {
+                    validate_delete_comment(action, original_action, original_comment)
+                }
+                EntryTypes::Post(original_post) => {
+                    validate_delete_post(action, original_action, original_post)
+                }
             }
         }
-        FlatOp::RegisterCreateLink {
-            link_type,
-            base_address,
-            target_address,
-            tag,
-            action,
-        } => match link_type {
-            LinkTypes::PostUpdates => {
-                validate_create_link_post_updates(action, base_address, target_address, tag)
-            }
-            LinkTypes::PostToComments => {
-                validate_create_link_post_to_comments(action, base_address, target_address, tag)
-            }
-            LinkTypes::AllPosts => {
-                validate_create_link_all_posts(action, base_address, target_address, tag)
-            }
-        },
-        FlatOp::RegisterDeleteLink {
-            link_type,
-            base_address,
-            target_address,
-            tag,
-            original_action,
-            action,
-        } => match link_type {
-            LinkTypes::PostUpdates => validate_delete_link_post_updates(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::PostToComments => validate_delete_link_post_to_comments(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-            LinkTypes::AllPosts => validate_delete_link_all_posts(
-                action,
-                original_action,
-                base_address,
-                target_address,
-                tag,
-            ),
-        },
-        FlatOp::StoreRecord(store_record) => {
-            match store_record {
-                // Complementary validation to the `StoreEntry` Op, in which the record itself is validated
-                // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry`
-                // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `StoreEntry` validation failed
-                OpRecord::CreateEntry { app_entry, action } => match app_entry {
-                    EntryTypes::Post(post) => {
-                        validate_create_post(EntryCreationAction::Create(action), post)
-                    }
-                    EntryTypes::Comment(comment) => {
-                        validate_create_comment(EntryCreationAction::Create(action), comment)
-                    }
-                },
-                // Complementary validation to the `RegisterUpdate` Op, in which the record itself is validated
-                // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `StoreEntry` and in `RegisterUpdate`
-                // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the other validations failed
-                OpRecord::UpdateEntry {
-                    original_action_hash,
-                    app_entry,
-                    action,
-                    ..
-                } => {
-                    let original_record = must_get_valid_record(original_action_hash)?;
-                    let original_action = original_record.action().clone();
-                    let original_action = match original_action {
-                        Action::Create(create) => EntryCreationAction::Create(create),
-                        Action::Update(update) => EntryCreationAction::Update(update),
-                        _ => {
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "Original action for an update must be a Create or Update action"
-                                    .to_string(),
-                            ));
-                        }
-                    };
-                    match app_entry {
-                        EntryTypes::Post(post) => {
-                            let result = validate_create_post(
-                                EntryCreationAction::Update(action.clone()),
-                                post.clone(),
-                            )?;
-                            if let ValidateCallbackResult::Valid = result {
-                                let original_post: Option<Post> = original_record
-                                    .entry()
-                                    .to_app_option()
-                                    .map_err(|e| wasm_error!(e))?;
-                                let original_post = match original_post {
-                                    Some(post) => post,
-                                    None => {
-                                        return Ok(
-                                            ValidateCallbackResult::Invalid(
-                                                "The updated entry type must be the same as the original entry type"
-                                                    .to_string(),
-                                            ),
-                                        );
-                                    }
-                                };
-                                validate_update_post(action, post, original_action, original_post)
-                            } else {
-                                Ok(result)
-                            }
-                        }
-                        EntryTypes::Comment(comment) => {
-                            let result = validate_create_comment(
-                                EntryCreationAction::Update(action.clone()),
-                                comment.clone(),
-                            )?;
-                            if let ValidateCallbackResult::Valid = result {
-                                let original_comment: Option<Comment> = original_record
-                                    .entry()
-                                    .to_app_option()
-                                    .map_err(|e| wasm_error!(e))?;
-                                let original_comment = match original_comment {
-                                    Some(comment) => comment,
-                                    None => {
-                                        return Ok(
-                                            ValidateCallbackResult::Invalid(
-                                                "The updated entry type must be the same as the original entry type"
-                                                    .to_string(),
-                                            ),
-                                        );
-                                    }
-                                };
-                                validate_update_comment(
-                                    action,
-                                    comment,
-                                    original_action,
-                                    original_comment,
-                                )
-                            } else {
-                                Ok(result)
-                            }
-                        }
-                    }
+        FlatOp::Link(OpLink::CreateLink { link_type, action }) => {
+            let base_address = action.base_address.clone();
+            let target_address = action.target_address.clone();
+            let tag = action.tag.clone();
+            match link_type {
+                LinkTypes::PostUpdates => {
+                    validate_create_link_post_updates(action, base_address, target_address, tag)
                 }
-                // Complementary validation to the `RegisterDelete` Op, in which the record itself is validated
-                // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDelete`
-                // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDelete` validation failed
-                OpRecord::DeleteEntry {
-                    original_action_hash,
+                LinkTypes::PostToComments => validate_create_link_post_to_comments(
                     action,
-                    ..
-                } => {
-                    let original_record = must_get_valid_record(original_action_hash)?;
-                    let original_action = original_record.action().clone();
-                    let original_action = match original_action {
-                        Action::Create(create) => EntryCreationAction::Create(create),
-                        Action::Update(update) => EntryCreationAction::Update(update),
-                        _ => {
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "Original action for a delete must be a Create or Update action"
-                                    .to_string(),
-                            ));
-                        }
-                    };
-                    let app_entry_type = match original_action.entry_type() {
-                        EntryType::App(app_entry_type) => app_entry_type,
-                        _ => {
-                            return Ok(ValidateCallbackResult::Valid);
-                        }
-                    };
-                    let entry = match original_record.entry().as_option() {
-                        Some(entry) => entry,
-                        None => {
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "Original record for a delete must contain an entry".to_string(),
-                            ));
-                        }
-                    };
-                    let original_app_entry = match EntryTypes::deserialize_from_type(
-                        app_entry_type.zome_index,
-                        app_entry_type.entry_index,
-                        entry,
-                    )? {
-                        Some(app_entry) => app_entry,
-                        None => {
-                            return Ok(
-                                ValidateCallbackResult::Invalid(
-                                    "Original app entry must be one of the defined entry types for this zome"
-                                        .to_string(),
-                                ),
-                            );
-                        }
-                    };
-                    match original_app_entry {
-                        EntryTypes::Post(original_post) => {
-                            validate_delete_post(action, original_action, original_post)
-                        }
-                        EntryTypes::Comment(original_comment) => {
-                            validate_delete_comment(action, original_action, original_comment)
-                        }
-                    }
-                }
-                // Complementary validation to the `RegisterCreateLink` Op, in which the record itself is validated
-                // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterCreateLink`
-                // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterCreateLink` validation failed
-                OpRecord::CreateLink {
                     base_address,
                     target_address,
                     tag,
-                    link_type,
+                ),
+                LinkTypes::AllPosts => {
+                    validate_create_link_all_posts(action, base_address, target_address, tag)
+                }
+            }
+        }
+        FlatOp::Link(OpLink::DeleteLink {
+            original_action,
+            link_type,
+            action,
+        }) => {
+            let base_address = original_action.base_address.clone();
+            let target_address = original_action.target_address.clone();
+            let tag = original_action.tag.clone();
+            match link_type {
+                LinkTypes::PostUpdates => validate_delete_link_post_updates(
                     action,
-                } => match link_type {
-                    LinkTypes::PostUpdates => {
-                        validate_create_link_post_updates(action, base_address, target_address, tag)
+                    original_action,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::PostToComments => validate_delete_link_post_to_comments(
+                    action,
+                    original_action,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+                LinkTypes::AllPosts => validate_delete_link_all_posts(
+                    action,
+                    original_action,
+                    base_address,
+                    target_address,
+                    tag,
+                ),
+            }
+        }
+        FlatOp::CreateRecord(store_record) => match store_record {
+            OpRecord::CreateEntry { app_entry, action } => {
+                let action = TypedAction {
+                    header: action.header,
+                    data: EntryCreationData::Create(action.data),
+                };
+                match app_entry {
+                    EntryTypes::Post(post) => validate_create_post(action, post),
+                    EntryTypes::Comment(comment) => validate_create_comment(action, comment),
+                }
+            }
+            OpRecord::UpdateEntry { app_entry, action } => {
+                let original_action_hash = action.original_action_address.clone();
+                let original_record = must_get_valid_record(original_action_hash.clone())?;
+                let original_action = match TypedAction::<EntryCreationData>::try_from(
+                    original_record.action().clone(),
+                ) {
+                    Ok(action) => action,
+                    Err(_) => {
+                        return Ok(ValidateCallbackResult::Invalid(
+                            "Original action for an update must be a Create or Update action"
+                                .to_string(),
+                        ));
                     }
+                };
+                let create_action = TypedAction {
+                    header: action.header.clone(),
+                    data: EntryCreationData::Update(action.data.clone()),
+                };
+                match app_entry {
+                    EntryTypes::Post(post) => {
+                        let result = validate_create_post(create_action, post.clone())?;
+                        if let ValidateCallbackResult::Valid = result {
+                            let original_post: Option<Post> = original_record
+                                .entry()
+                                .to_app_option()
+                                .map_err(|e| wasm_error!(e))?;
+                            let original_post = match original_post {
+                                Some(post) => post,
+                                None => {
+                                    return Ok(ValidateCallbackResult::Invalid(
+                                        "The updated entry type must be the same as the original entry type"
+                                            .to_string(),
+                                    ));
+                                }
+                            };
+                            validate_update_post(action, post, original_action, original_post)
+                        } else {
+                            Ok(result)
+                        }
+                    }
+                    EntryTypes::Comment(comment) => {
+                        let result = validate_create_comment(create_action, comment.clone())?;
+                        if let ValidateCallbackResult::Valid = result {
+                            let original_comment: Option<Comment> = original_record
+                                .entry()
+                                .to_app_option()
+                                .map_err(|e| wasm_error!(e))?;
+                            let original_comment = match original_comment {
+                                Some(comment) => comment,
+                                None => {
+                                    return Ok(ValidateCallbackResult::Invalid(
+                                        "The updated entry type must be the same as the original entry type"
+                                            .to_string(),
+                                    ));
+                                }
+                            };
+                            validate_update_comment(
+                                action,
+                                comment,
+                                original_action,
+                                original_comment,
+                            )
+                        } else {
+                            Ok(result)
+                        }
+                    }
+                }
+            }
+            OpRecord::DeleteEntry { action } => {
+                let original_action_hash = action.deletes_address.clone();
+                let original_record = must_get_valid_record(original_action_hash)?;
+                let original_action = match TypedAction::<EntryCreationData>::try_from(
+                    original_record.action().clone(),
+                ) {
+                    Ok(action) => action,
+                    Err(_) => {
+                        return Ok(ValidateCallbackResult::Invalid(
+                            "Original action for a delete must be a Create or Update action"
+                                .to_string(),
+                        ));
+                    }
+                };
+                let app_entry_type = match original_action.entry_type() {
+                    EntryType::App(app_entry_type) => app_entry_type.clone(),
+                    _ => {
+                        return Ok(ValidateCallbackResult::Valid);
+                    }
+                };
+                let entry = match original_record.entry().as_option() {
+                    Some(entry) => entry,
+                    None => {
+                        if original_action.entry_type().visibility().is_public() {
+                            return Ok(ValidateCallbackResult::Invalid(
+                                "Original record for a delete of a public entry must contain an entry"
+                                    .to_string(),
+                            ));
+                        } else {
+                            return Ok(ValidateCallbackResult::Valid);
+                        }
+                    }
+                };
+                let original_app_entry = match EntryTypes::deserialize_from_type(
+                    app_entry_type.zome_index,
+                    app_entry_type.entry_index,
+                    entry,
+                )? {
+                    Some(app_entry) => app_entry,
+                    None => {
+                        return Ok(ValidateCallbackResult::Invalid(
+                            "Original app entry must be one of the defined entry types for this zome"
+                                .to_string(),
+                        ));
+                    }
+                };
+                match original_app_entry {
+                    EntryTypes::Post(original_post) => {
+                        validate_delete_post(action, original_action, original_post)
+                    }
+                    EntryTypes::Comment(original_comment) => {
+                        validate_delete_comment(action, original_action, original_comment)
+                    }
+                }
+            }
+            OpRecord::CreateLink { link_type, action } => {
+                let base_address = action.base_address.clone();
+                let target_address = action.target_address.clone();
+                let tag = action.tag.clone();
+                match link_type {
+                    LinkTypes::PostUpdates => validate_create_link_post_updates(
+                        action,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
                     LinkTypes::PostToComments => validate_create_link_post_to_comments(
                         action,
                         base_address,
                         target_address,
                         tag,
                     ),
-                    LinkTypes::AllPosts => {
-                        validate_create_link_all_posts(action, base_address, target_address, tag)
-                    }
-                },
-                // Complementary validation to the `RegisterDeleteLink` Op, in which the record itself is validated
-                // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `RegisterDeleteLink`
-                // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `RegisterDeleteLink` validation failed
-                OpRecord::DeleteLink {
-                    original_action_hash,
-                    base_address,
-                    action,
-                } => {
-                    let record = must_get_valid_record(original_action_hash)?;
-                    let create_link = match record.action() {
-                        Action::CreateLink(create_link) => create_link.clone(),
-                        _ => {
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "The action that a DeleteLink deletes must be a CreateLink"
-                                    .to_string(),
-                            ));
-                        }
-                    };
-                    let link_type = match LinkTypes::from_type(
-                        create_link.zome_index,
-                        create_link.link_type,
-                    )? {
-                        Some(lt) => lt,
-                        None => {
-                            return Ok(ValidateCallbackResult::Valid);
-                        }
-                    };
-                    match link_type {
-                        LinkTypes::PostUpdates => validate_delete_link_post_updates(
-                            action,
-                            create_link.clone(),
-                            base_address,
-                            create_link.target_address,
-                            create_link.tag,
-                        ),
-                        LinkTypes::PostToComments => validate_delete_link_post_to_comments(
-                            action,
-                            create_link.clone(),
-                            base_address,
-                            create_link.target_address,
-                            create_link.tag,
-                        ),
-                        LinkTypes::AllPosts => validate_delete_link_all_posts(
-                            action,
-                            create_link.clone(),
-                            base_address,
-                            create_link.target_address,
-                            create_link.tag,
-                        ),
-                    }
+                    LinkTypes::AllPosts => validate_create_link_all_posts(
+                        action,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
                 }
-                OpRecord::CreatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::UpdatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::CreateCapClaim { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::CreateCapGrant { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::UpdateCapClaim { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::UpdateCapGrant { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::Dna { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::OpenChain { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::CloseChain { .. } => Ok(ValidateCallbackResult::Valid),
-                OpRecord::InitZomesComplete { .. } => Ok(ValidateCallbackResult::Valid),
-                _ => Ok(ValidateCallbackResult::Valid),
             }
-        }
-        FlatOp::RegisterAgentActivity(agent_activity) => match agent_activity {
-            OpActivity::CreateAgent { agent, action } => {
-                let previous_action = must_get_action(action.prev_action)?;
-                match previous_action.action() {
-                        Action::AgentValidationPkg(
-                            AgentValidationPkg { membrane_proof, .. },
-                        ) => validate_agent_joining(agent, membrane_proof),
-                        _ => {
-                            Ok(
-                                ValidateCallbackResult::Invalid(
-                                    "The previous action for a `CreateAgent` action must be an `AgentValidationPkg`"
-                                        .to_string(),
-                                ),
-                            )
-                        }
+            OpRecord::DeleteLink { action } => {
+                let record = must_get_valid_record(action.link_add_address.clone())?;
+                let create_link = match TypedAction::<CreateLinkData>::try_from(
+                    record.action().clone(),
+                ) {
+                    Ok(create_link) => create_link,
+                    Err(_) => {
+                        return Ok(ValidateCallbackResult::Invalid(
+                            "The action that a DeleteLink deletes must be a CreateLink"
+                                .to_string(),
+                        ));
                     }
+                };
+                let link_type = match LinkTypes::from_type(
+                    create_link.zome_index,
+                    create_link.link_type,
+                )? {
+                    Some(lt) => lt,
+                    None => {
+                        return Ok(ValidateCallbackResult::Valid);
+                    }
+                };
+                let base_address = action.base_address.clone();
+                let target_address = create_link.target_address.clone();
+                let tag = create_link.tag.clone();
+                match link_type {
+                    LinkTypes::PostUpdates => validate_delete_link_post_updates(
+                        action,
+                        create_link,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
+                    LinkTypes::PostToComments => validate_delete_link_post_to_comments(
+                        action,
+                        create_link,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
+                    LinkTypes::AllPosts => validate_delete_link_all_posts(
+                        action,
+                        create_link,
+                        base_address,
+                        target_address,
+                        tag,
+                    ),
+                }
+            }
+            OpRecord::CreatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::UpdatePrivateEntry { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::CreateCapClaim { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::CreateCapGrant { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::UpdateCapClaim { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::UpdateCapGrant { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::Dna { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::OpenChain { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::CloseChain { .. } => Ok(ValidateCallbackResult::Valid),
+            OpRecord::InitZomesComplete { .. } => Ok(ValidateCallbackResult::Valid),
+            _ => Ok(ValidateCallbackResult::Valid),
+        },
+        FlatOp::AgentActivity(agent_activity) => match agent_activity {
+            OpActivity::CreateAgent { agent, action } => {
+                let prev = action
+                    .prev_action()
+                    .ok_or_else(|| {
+                        wasm_error!(WasmErrorInner::Guest(
+                            "expected a prior action before CreateAgent".into()
+                        ))
+                    })?
+                    .clone();
+                let previous_action = must_get_action(prev)?;
+                match &previous_action.action().data {
+                    ActionData::AgentValidationPkg(AgentValidationPkgData {
+                        membrane_proof,
+                        ..
+                    }) => validate_agent_joining(agent, membrane_proof),
+                    _ => Ok(ValidateCallbackResult::Invalid(
+                        "The previous action for a `CreateAgent` action must be an `AgentValidationPkg`"
+                            .to_string(),
+                    )),
+                }
             }
             _ => Ok(ValidateCallbackResult::Valid),
         },

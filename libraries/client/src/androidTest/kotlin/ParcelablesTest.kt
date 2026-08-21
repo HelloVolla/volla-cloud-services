@@ -323,15 +323,15 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testAppStatusFfiParcelRunning() {
-        val value = AppStatusFfiParcel(AppStatusFfi.Running)
+    fun testAppStatusFfiParcelEnabled() {
+        val value = AppStatusFfiParcel(AppStatusFfi.Enabled)
 
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
         val readValue = parcelableCreator<AppStatusFfiParcel>().createFromParcel(parcel)
 
-        assert(readValue.inner is AppStatusFfi.Running)
+        assert(readValue.inner is AppStatusFfi.Enabled)
     }
 
     @Test
@@ -677,6 +677,7 @@ class ParcelablesTest {
                 RuntimeNetworkConfigFfi(
                     bootstrapUrl = "2",
                     signalUrl = "3",
+                    relayUrl = "6",
                     iceUrls = listOf("4", "5"),
                 ),
             )
@@ -687,6 +688,7 @@ class ParcelablesTest {
 
         assertEquals(value.inner.bootstrapUrl, readValue.inner.bootstrapUrl)
         assertEquals(value.inner.signalUrl, readValue.inner.signalUrl)
+        assertEquals(value.inner.relayUrl, readValue.inner.relayUrl)
         assertEquals(value.inner.iceUrls.size, readValue.inner.iceUrls.size)
         assertEquals(value.inner.iceUrls.first(), readValue.inner.iceUrls.first())
     }

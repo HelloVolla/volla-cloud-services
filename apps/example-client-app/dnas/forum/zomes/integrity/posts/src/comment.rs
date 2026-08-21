@@ -8,7 +8,7 @@ pub struct Comment {
 }
 
 pub fn validate_create_comment(
-    _action: EntryCreationAction,
+    _action: TypedAction<EntryCreationData>,
     comment: Comment,
 ) -> ExternResult<ValidateCallbackResult> {
     let record = must_get_valid_record(comment.post_hash.clone())?;
@@ -24,9 +24,9 @@ pub fn validate_create_comment(
 }
 
 pub fn validate_update_comment(
-    _action: Update,
+    _action: TypedAction<UpdateData>,
     _comment: Comment,
-    _original_action: EntryCreationAction,
+    _original_action: TypedAction<EntryCreationData>,
     _original_comment: Comment,
 ) -> ExternResult<ValidateCallbackResult> {
     Ok(ValidateCallbackResult::Invalid(
@@ -35,8 +35,8 @@ pub fn validate_update_comment(
 }
 
 pub fn validate_delete_comment(
-    _action: Delete,
-    _original_action: EntryCreationAction,
+    _action: TypedAction<DeleteData>,
+    _original_action: TypedAction<EntryCreationData>,
     _original_comment: Comment,
 ) -> ExternResult<ValidateCallbackResult> {
     // TODO: add the appropriate validation rules
@@ -44,7 +44,7 @@ pub fn validate_delete_comment(
 }
 
 pub fn validate_create_link_post_to_comments(
-    _action: CreateLink,
+    _action: TypedAction<CreateLinkData>,
     base_address: AnyLinkableHash,
     target_address: AnyLinkableHash,
     _tag: LinkTag,
@@ -81,8 +81,8 @@ pub fn validate_create_link_post_to_comments(
 }
 
 pub fn validate_delete_link_post_to_comments(
-    _action: DeleteLink,
-    _original_action: CreateLink,
+    _action: TypedAction<DeleteLinkData>,
+    _original_action: TypedAction<CreateLinkData>,
     _base: AnyLinkableHash,
     _target: AnyLinkableHash,
     _tag: LinkTag,
