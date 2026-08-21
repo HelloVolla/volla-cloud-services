@@ -101,15 +101,11 @@ jobs:
 
       - name: Build android AAB
         run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --aab --target aarch64 --target i686 --target x86_64 --features ${{ matrix.feature }}"
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --aab --target aarch64 --target x86_64 --features ${{ matrix.feature }}"
 
       - name: Build android APK (aarch64)
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --apk --split-per-abi --target aarch64 --features ${{ matrix.feature }}"
-
-      - name: Build android APK (i686)
-        run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --apk --split-per-abi --target i686 --features ${{ matrix.feature }}"
 
       - name: Build android APK (x86_64)
         run: |
@@ -178,15 +174,11 @@ jobs:
 
       - name: Build android AAB
         run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --aab --target aarch64 --target i686 --target x86_64 --features ${{ matrix.feature }}"
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --aab --target aarch64 --target x86_64 --features ${{ matrix.feature }}"
 
       - name: Build android APK (aarch64)
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --apk --split-per-abi --target aarch64 --features ${{ matrix.feature }}"
-
-      - name: Build android APK (i686)
-        run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --apk --split-per-abi --target i686 --features ${{ matrix.feature }}"
 
       - name: Build android APK (x86_64)
         run: |
