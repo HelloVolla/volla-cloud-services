@@ -1,5 +1,24 @@
 # Unreleased
 
+- Update to holochain 0.7.0 (hdk 0.7.0 / hdi 0.8.0 for the example app zomes).
+  - The conductor network config now maps only `bootstrap_url` and `relay_url`;
+    holochain 0.7 dropped the SBD signal server and WebRTC transport, so the
+    runtime's `signal_url` and `ice_urls` fields are kept for API compatibility
+    but ignored by kitsune2.
+  - New `AppStatus` variants (`AwaitingRestore`, `Unrecoverable`) and the new
+    `restore_from_dht` install option are exposed through the FFI types.
+  - Dropped the 32-bit x86 Android target (i686-linux-android): wasmer-vm
+    7.1.0, pinned `=7.1.0` by holochain 0.7.0, does not compile for that
+    target. Builds and releases now cover arm64-v8a and x86_64 only.
+  - Example app zomes migrated to the reshaped hdi 0.8 `FlatOp` validation API
+    (`CreateEntry`/`CreateRecord`/`Update`/`Delete`/`Link`/`AgentActivity`,
+    `TypedAction<...>` validators) and `ActionData` matching in the coordinator.
+  - Rust toolchain bumped to 1.95.0 (rust-toolchain.toml), dev shell moved to
+    holonix main-0.7 (self-contained flake, darksoil plugin input dropped).
+  - Example app JS deps bumped: `@holochain/client` 0.21.0 and
+    `@holochain-open-dev/tryorama` 0.20.0 (the `@holochain/tryorama` line ends
+    at holochain 0.6).
+
 - The 'Open Settings' button will first attempt to open the android-service-runtime app via the system settings (i.e. for 'system' builds). If that fails it will fallback to opening the app via the launcher (i.e. for 'user' builds).
 
 # 0.3.3
