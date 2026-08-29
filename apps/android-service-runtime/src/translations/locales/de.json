@@ -1,2 +1,23 @@
 {
+  "app_title": "Volla Cloud Service",
+  "status": "Status",
+  "my_apps": "Meine Anwendungen",
+  "installed_apps": "Installierte Anwendungen",
+  "start_service_to_view_apps": "Dienst starten, um installierte Anwendungen anzuzeigen",
+  "no_apps_installed": "Keine Anwendungen installiert",
+  "service_status": "Service Status",
+  "running": "läuft",
+  "stopped": "gestoppt",
+  "advanced_settings": "Erweiterte Einstellungen",
+  "app_id": "App ID",
+  "agent_public_key": "Öffentlicher Schlüssel des Agenten",
+  "seconds_short": "secs",
+  "nanoseconds_short": "nanos",
+  "uninstall": "Deinstallieren",
+  "cells": "Zellen",
+  "role_name": "Rollenname",
+  "cell_name": "Zellenname",
+  "dna_modifiers": "DNA-Modifizierer",
+  "network_seed": "Network Seed",
+  "properties": "Eigenschaften"
 }
