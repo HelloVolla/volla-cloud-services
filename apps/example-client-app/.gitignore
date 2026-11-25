@@ -8,7 +8,8 @@
 # build
 /dist/
 /target/
-/.cargo/
+/.cargo/*
+!/.cargo/config.toml
 
 # package manager
 /**/node_modules/

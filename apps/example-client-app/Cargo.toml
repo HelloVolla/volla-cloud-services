@@ -9,10 +9,15 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "src-tauri"
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "0.7.0"
-hdk = "0.6.0"
+# Pinned to the exact hdk/hdi that the parent workspace's Cargo.lock resolves
+# for holochain 0.6.1-rc.7, so the zome wasm matches the conductor the service
+# ships. hdk 0.6.0 pulled holochain_serialized_bytes 0.0.56 (serde =1.0.219),
+# which cannot co-resolve with holochain_conductor_api 0.6.1-rc.7's
+# holochain_serialized_bytes =0.0.57 (serde =1.0.228) in the same graph.
+hdi = "=0.7.1-rc.5"
+hdk = "=0.6.1-rc.5"
 serde = "1.0"
-holochain_serialized_bytes = "0.0.56"
+holochain_serialized_bytes = "0.0.57"
 
 [workspace.dependencies.posts]
 path = "dnas/forum/zomes/coordinator/posts"
